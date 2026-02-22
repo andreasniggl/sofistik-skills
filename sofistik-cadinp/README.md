@@ -13,8 +13,9 @@ When loaded as a skill, Claude reads the reference files in this folder before w
 | AQUA | `modules/AQUA.md` | Materials and cross-sections |
 | SOFIMSHC | `modules/SOFIMSHC.md` | Structural model geometry and meshing |
 | SOFILOAD | `modules/SOFILOAD.md` | Actions, load cases, and load application |
+| ASE | `modules/ASE.md` | Linear, nonlinear, eigenvalue, and dynamic analysis |
 
-ASE (analysis), DECREATOR, BEAM, COLUMN, and BEMESS modules are planned but not yet documented.
+DECREATOR, BEAM, COLUMN, and BEMESS modules are planned but not yet documented.
 
 ## Repository structure
 
@@ -29,7 +30,8 @@ sofistik-cadinp/
 └── modules/
     ├── AQUA.md                 ← materials & sections (811 lines)
     ├── SOFIMSHC.md             ← structural model & meshing (1318 lines)
-    └── SOFILOAD.md             ← actions & loads (1263 lines)
+    ├── SOFILOAD.md             ← actions & loads (1263 lines)
+    └── ASE.md                  ← analysis engine (810 lines)
 ```
 
 ## How to use

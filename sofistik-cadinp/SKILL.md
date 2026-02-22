@@ -1,3 +1,24 @@
+---
+name: sofistik-cadinp
+description: >
+  Generate syntactically correct SOFiSTiK structural analysis input files in the
+  CADINP language (.dat files). Covers materials and sections (AQUA), structural
+  modelling and meshing (SOFIMSHC), load definition (SOFILOAD), and linear,
+  nonlinear, eigenvalue and dynamic analysis (ASE). Use this skill whenever the
+  user asks to create, edit, or review SOFiSTiK input, or mentions .dat files,
+  CADINP, or SOFiSTiK FEA.
+triggers:
+  - SOFiSTiK
+  - CADINP
+  - .dat file
+  - structural analysis input
+  - FEA input file
+  - AQUA
+  - SOFIMSHC
+  - SOFILOAD
+  - ASE
+---
+
 # SOFiSTiK CADINP Input File Generation Skill
 
 ## Purpose
