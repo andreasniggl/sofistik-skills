@@ -353,7 +353,7 @@ LC NO TYPE FACT FACD DLX DLY DLZ
 
 **Notes on dead weight:** The components DLX, DLY, DLZ act in the positive direction of the respective global axis — enter the correct sign. Specifying only FACD applies dead weight in the gravity direction defined for the system. Defining any dead-weight factor automatically deletes all previously defined loads for this load case.
 
-**TYPE — special result-type literals** (for nonlinear or pre-combined load cases):
+**TYPE — special values:**
 
 | Value  | Meaning |
 |--------|---------|
@@ -361,20 +361,70 @@ LC NO TYPE FACT FACD DLX DLY DLZ
 | `REST` | Regenerate all generated loads from source generators |
 | `IMP`  | Imperfection load case (for second-order theory combinations) |
 | `EINF` | Influence line load case |
-| `D`    | Ultimate design combination |
-| `A`    | Ultimate accidental combination |
-| `E`    | Ultimate earthquake combination |
-| `P`    | Service: quasi-permanent combination |
-| `F`    | Service: frequent combination |
-| `N`    | Service: non-frequent combination |
-| `R`    | Service: rare (characteristic) combination |
-| `H`    | Combination of principal loading |
-| `HZ`   | Combination of principal + supplemental loading |
-| `PT`   | Permanent load combination (e.g. timber) |
-| `LT`   | Long-term load combination |
-| `MT`   | Medium-term load combination |
-| `ST`   | Short-term load combination |
-| `VT`   | Very short-term load combination |
+
+**Parenthesised TYPE for pre-combined load cases:**
+
+When a load case is built manually via `COPY` (i.e. a user-assembled combination rather than an action-based primary load case), the result-type literal **must be enclosed in parentheses** to distinguish it from an action name reference. The parentheses tell SOFiSTiK that this load case is a pre-combined result, not a reference to an `ACT` definition.
+
+| Syntax | Meaning |
+|--------|---------|
+| `LC 101 TYPE Q ...` | Primary load case belonging to action Q |
+| `LC 101 TYPE (D) ...` | Pre-combined ULS design combination |
+| `LC 201 TYPE (R) ...` | Pre-combined SLS rare combination |
+
+The parenthesised TYPE controls how downstream modules (MAXIMA, AQB, BEMESS) interpret the load case — for example, `(D)` triggers ULS design checks, `(R)` triggers SLS stress checks, `(P)` triggers long-term deflection checks, and `(F)` triggers crack width checks.
+
+**Result-type literals for pre-combined load cases:**
+
+| TYPE literal | Combination type | Typical use |
+|-------------|-----------------|-------------|
+| `(D)`  | Ultimate design (fundamental) | ULS bending, shear, capacity checks |
+| `(A)`  | Ultimate accidental | Accidental design situations |
+| `(E)`  | Ultimate earthquake | Seismic design combinations |
+| `(R)`  | Service: rare (characteristic) | SLS stress limitation |
+| `(N)`  | Service: non-frequent | SLS checks per EC1-3 |
+| `(F)`  | Service: frequent | SLS crack width verification |
+| `(P)`  | Service: quasi-permanent | SLS deflection, long-term effects |
+| `(H)`  | Principal loading | Superposition of principal loads |
+| `(HZ)` | Principal + supplemental | Extended superposition |
+| `(PT)` | Permanent (timber) | Timber permanent load duration |
+| `(LT)` | Long-term (timber) | Timber long-term load duration |
+| `(MT)` | Medium-term (timber) | Timber medium-term load duration |
+| `(ST)` | Short-term (timber) | Timber short-term load duration |
+| `(VT)` | Very short-term (timber) | Timber instantaneous load duration |
+
+**Typical usage of parenthesised TYPE:**
+```
+$ ULS fundamental combination with explicit factors
+LC 101 TYPE (D) TITL 'ULS 6.10 — G + Q full'
+  COPY NO 1  FACT 1.35    $ G  self-weight
+  COPY NO 2  FACT 1.35    $ G2 superimposed dead
+  COPY NO 11 FACT 1.50    $ Q  live load (leading)
+
+$ SLS rare (characteristic) combination
+LC 201 TYPE (R) TITL 'SLS rare — G + Q'
+  COPY NO 1  FACT 1.00
+  COPY NO 2  FACT 1.00
+  COPY NO 11 FACT 1.00
+
+$ SLS frequent combination using PSI1 literal
+LC 211 TYPE (F) TITL 'SLS frequent — G + psi1*Q'
+  COPY NO 1  FACT 1.00
+  COPY NO 2  FACT 1.00
+  COPY NO 11 FACT PSI1
+
+$ SLS quasi-permanent combination
+LC 301 TYPE (P) TITL 'SLS quasi-perm — G + psi2*Q'
+  COPY NO 1  FACT 1.00
+  COPY NO 2  FACT 1.00
+  COPY NO 11 FACT PSI2
+
+$ Timber short-term combination
+LC 401 TYPE (ST) TITL 'Timber ST — G + Q snow'
+  COPY NO 1  FACT 1.00
+  COPY NO 2  FACT 1.00
+  COPY NO 4  FACT 1.00
+```
 
 > Values GAMU to PS1S belong to the action TYPE in general but may be given individual values per load case. Starting with version 2010, only explicitly specified values are stored per load case; all other values adopt to those of the action when the action is changed.
 > CRI1–CRI3 are free parameters usable for postprocessing via DBVIEW (e.g. a system dimension or a strength reduction). TALPA uses CRI1 for the Fellenius safety factor.
@@ -1226,7 +1276,7 @@ AREA REF AUTO TYPE PZP $$
 $ ============================================================
 !*! Load case 101: ULS fundamental - G + Q (EN 1990 6.10)
 $ ============================================================
-LC 101 TYPE G TITL 'ULS - 1.35G + 1.5Q'
+LC 101 TYPE (D) TITL 'ULS - 1.35G + 1.5Q'
 COPY NO 1  FACT 1.35   $ G self-weight
 COPY NO 2  FACT 1.35   $ G2 superimposed dead
 COPY NO 11 FACT 1.50   $ Q1 live load (leading variable action)
@@ -1237,7 +1287,7 @@ $ COPY 1,2,11 DESI      (LC 11 first = leading action)
 $ ============================================================
 !*! Load case 201: SLS rare combination
 $ ============================================================
-LC 201 TYPE G TITL 'SLS rare - G + Q'
+LC 201 TYPE (R) TITL 'SLS rare - G + Q'
 COPY NO 1  FACT 1.0
 COPY NO 2  FACT 1.0
 COPY NO 11 FACT PSI0   $ apply ψ₀ factor from Q action definition
