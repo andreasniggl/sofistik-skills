@@ -211,9 +211,22 @@ CADINP keywords and parameter names are **case-insensitive**. However, **always 
 
 ## 8. Continuation and Line Length
 
-- Each command is typically on a single line.
-- There is no explicit line continuation character. Long commands wrap naturally; keep lines reasonably short for readability.
-- Sub-records are placed on new lines with indentation — this is the primary mechanism for structuring complex definitions.
+- Place `$$` at the end of a line to continue the current record on the next line.
+- Use `$$` only when a record exceeds 100 characters. Shorter commands stay on one line.
+- Sub-records (e.g. `SLNB` after `SLN`, `SARB` after `SAR`) are separate records and do not need `$$`.
+
+```
+$ Short — one line
+AREA REF SAR NO 3 TYPE PZP P1 -2.0
+
+$ Long — split with $$
+AREA REF AUTO TYPE PZP P1 -3.0 X1 0.0 Y1 0.0 Z1 0.0 P2 -3.0 X2 6.0 Y2 0.0 Z2 0.0 $$
+     P3 -3.0 X3 6.0 Y3 5.0 Z3 0.0 P4 -3.0 X4 0.0 Y4 5.0 Z4 0.0
+
+$ Sub-records — no $$
+SLN NO 1 NPA 1 NPE 2 SNO 1 GRP 1
+  SLNB X1 0.0[m] Y1 0.0[m] Z1 0.0[m] X2 6.0[m] Y2 0.0[m] Z2 0.0[m]
+```
 
 ---
 
