@@ -25,7 +25,7 @@ END
 Modules must be ordered so that outputs of earlier modules are available as inputs to later ones. The canonical order is:
 
 ```
-AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → BEAM
+AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → BEAM → COLUMN → BEMESS
 ```
 
 ---
@@ -211,26 +211,27 @@ CADINP keywords and parameter names are **case-insensitive**. However, **always 
 
 ## 8. Continuation and Line Length
 
-- Place `$$` at the end of a line to continue the current record on the next line.
-- Use `$$` only when a record exceeds 100 characters. Shorter commands stay on one line.
-- Sub-records (e.g. `SLNB` after `SLN`, `SARB` after `SAR`) are separate records and do not need `$$`.
-
-```
-$ Short — one line
-AREA REF SAR NO 3 TYPE PZP P1 -2.0
-
-$ Long — split with $$
-AREA REF AUTO TYPE PZP P1 -3.0 X1 0.0 Y1 0.0 Z1 0.0 P2 -3.0 X2 6.0 Y2 0.0 Z2 0.0 $$
-     P3 -3.0 X3 6.0 Y3 5.0 Z3 0.0 P4 -3.0 X4 0.0 Y4 5.0 Z4 0.0
-
-$ Sub-records — no $$
-SLN NO 1 NPA 1 NPE 2 SNO 1 GRP 1
-  SLNB X1 0.0[m] Y1 0.0[m] Z1 0.0[m] X2 6.0[m] Y2 0.0[m] Z2 0.0[m]
-```
+- Each command is typically on a single line.
+- Use `$$` as continuation only when a record exceeds 100 characters.
+- Sub-records are placed on new lines with indentation — this is the primary mechanism for structuring complex definitions.
 
 ---
 
-## 9. Common Pitfalls to Avoid
+## 9. Unique Entity Numbers
+
+**Each entity number (`NO`) must be used only once per command type within a module block.** Defining the same command (e.g. `SLN`, `SPT`, `SAR`, `LC`) with the same `NO` a second time is an error. All properties for an entity — geometry, section, support conditions, and any other parameters — must be specified together on a single command line. Do not split an entity's definition across multiple records with the same `NO`.
+
+> Exception: a **negative** `NO` value is the deliberate mechanism for modifying an already-defined entity (e.g. `SAR NO -1` to update area 1). This is the only valid reason to reference an existing number again.
+
+---
+
+## 10. Strict Parameter Compliance
+
+**Only parameters explicitly listed in the parameter table of a command may be used.** Before writing any command, consult the parameter table in the relevant module file and include only parameters that appear there. Do not infer, guess, or transfer parameters from similarly named commands in other modules. For example, `SNO` is valid on `SLN` but does not appear in the `SAR` parameter table and must never be used on `SAR`.
+
+---
+
+## 11. Common Pitfalls to Avoid
 
 1. **Missing END**: Every `+PROG` block must be closed with `END`.
 2. **Wrong urs sequence**: `urs:n` values must be unique and sequential across the entire file.
@@ -238,3 +239,5 @@ SLN NO 1 NPA 1 NPE 2 SNO 1 GRP 1
 4. **Mixing unit systems**: Be explicit with `[unit]` suffixes when mixing mm/m or kN/kN/m to avoid silent scaling errors.
 5. **String quoting**: Use double quotes `"..."` for `TITL` and class values. Single quotes are valid but less common.
 6. **Sub-records without parent**: Sub-record keywords (e.g., `SARB`, `SLNN`, `SLNP`, `SPTS`, `DSLC`) are invalid without a preceding parent command.
+7. **Unlisted parameters**: Never use a parameter on a command unless it appears in that command's parameter table. Parameters valid for one command are not transferable to another, even within the same module.
+8. **Duplicate entity numbers**: Never define the same `NO` for the same command type more than once. Combine all parameters — geometry, supports, section — into the single defining record. Use a negative `NO` only when intentionally modifying an existing entity.
