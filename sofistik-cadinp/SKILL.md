@@ -23,6 +23,36 @@ Before generating any input file:
 
 **Always read `CADINP_LANGUAGE_RULES.md` before writing any input file — language rules apply globally.**
 
+## Mandatory Pre-Flight Protocol
+
+Before writing ANY line of CADINP input, Claude MUST complete the following steps in order.
+Skipping or partially reading any step is not permitted.
+
+1. **Read `CADINP_LANGUAGE_RULES.md` in full.**
+   Confirm: unit annotation rules, continuation marker `$$`, sub-record indentation,
+   NO uniqueness rule, strict parameter compliance rule, and common pitfalls list.
+
+2. **Read every required module file in full** (as determined by the Module Selection Guide).
+   For each module, confirm before moving on:
+   - All command syntaxes and parameter tables for commands you will use
+   - All sub-record rules (e.g. SLNS for line supports, SARB boundary-only role)
+   - All typical usage examples
+   - All warning/note blocks (marked with `>`)
+
+3. **Plan the complete file structure before writing.**
+   List every `+PROG` block, every entity (SPT, SLN, SAR, LC, …), and every
+   support/load condition. Verify cross-references are consistent before writing.
+
+4. **Write the file strictly from the parameter tables.**
+   Never use a parameter that does not appear in the parameter table of that command.
+   Never transfer parameters between commands based on similarity.
+   Never guess — if unsure, re-read the relevant module section.
+
+5. **Self-review before submitting.**
+   Check every command against its parameter table one final time.
+   Verify: correct NORM pairing, supports via SLNS not SARB FIX, units annotated,
+   urs sequence gapless, all +PROG blocks closed with END.
+
 ---
 
 ## Module Registry
