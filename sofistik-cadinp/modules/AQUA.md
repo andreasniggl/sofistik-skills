@@ -124,7 +124,7 @@ To activate a national annex, use the country's DC (not `EN`) together with the 
 
 | Country | DC | NDC | Description |
 |---------|----|-----|-------------|
-| Swizerland    | `SIA` | `26X` | SIA 262,263 — all swiss design codes |
+| Switzerland    | `SIA` | `26X` | SIA 262,263 — all swiss design codes |
 | United-States | `US`  | `ACI-318-19` | ACI 318-19 — American standard building code for structural concrete |
 | Canada | `CSA` | `S6-19` | CSA S6-19 — Canadian Highway bridge design code |
 | India | `IS`  | `456` | IS 456 — Indian standard concrete |
@@ -150,6 +150,12 @@ NORM DC SIA NDC 26X
 $ US ACI 318-19
 NORM DC US NDC ACI-318-19
 ```
+
+> ⚠️ **DC/NDC pairing rule:**
+> - `DC EN` (plain Eurocode, no national annex) → `NDC 199X-200X` (no `EN` prefix)
+> - `DC DIN/BS/NF/...` (national annex) → `NDC EN199X-200X` (with `EN` prefix)
+> Never write `DC EN NDC EN199X-200X` — the `EN` prefix in NDC is reserved for national-annex DCs only.
+
 
 ---
 
