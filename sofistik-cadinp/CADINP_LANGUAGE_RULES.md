@@ -217,7 +217,54 @@ CADINP keywords and parameter names are **case-insensitive**. However, **always 
 
 ---
 
-## 9. Unique Entity Numbers
+## 9. Variables and Expressions (LET)
+
+CADINP supports user-defined variables via the `LET` command. Variables can hold numeric values or expressions and be referenced in any subsequent parameter value.
+
+### 9.1 Variable Definition
+
+```
+LET#name value
+LET#name expression
+```
+
+- Variable names are prefixed with `#` and may contain letters, digits, and underscores (e.g. `#D`, `#AS`, `#PI`, `#H_SLAB`).
+- The value can be a numeric literal, another variable, or an arithmetic expression.
+- Variables are case-insensitive.
+
+### 9.2 Arithmetic Expressions
+
+CADINP supports standard arithmetic operators in expressions:
+
+| Operator | Meaning |
+|----------|---------|
+| `+` `-` `*` `/` | Addition, subtraction, multiplication, division |
+| `^` | Exponentiation |
+| `( )` | Grouping |
+
+Built-in functions: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SQRT`, `ABS`, `EXP`, `LOG`, `LOG10`, `MIN`, `MAX`, `INT`, `MOD`.
+
+### 9.3 Using Variables
+
+Once defined, a variable is referenced by its `#name` in any parameter position:
+
+```
+LET#D  10                        $ bar diameter [mm]
+LET#A  0.15                      $ bar spacing [m]
+LET#PI 3.14159265
+LET#AS 0.0025*#D*#D*#PI/#A      $ reinforcement area per metre
+
+GEOM - HA 35 DHA #D HB 35 DHB #D
+PARA NOG - DU #D ASU #AS ASL #AS
+```
+
+> Variables defined in one `+PROG` block are available in all subsequent blocks of the same `.dat` file.
+> `LET` commands can appear anywhere — before or within a `+PROG` block.
+> Use variables for parametric studies and to avoid repeating derived values.
+
+---
+
+## 10. Unique Entity Numbers
 
 **Each entity number (`NO`) must be used only once per command type within a module block.** Defining the same command (e.g. `SLN`, `SPT`, `SAR`, `LC`) with the same `NO` a second time is an error. All properties for an entity — geometry, section, support conditions, and any other parameters — must be specified together on a single command line. Do not split an entity's definition across multiple records with the same `NO`.
 
@@ -225,13 +272,13 @@ CADINP keywords and parameter names are **case-insensitive**. However, **always 
 
 ---
 
-## 10. Strict Parameter Compliance
+## 11. Strict Parameter Compliance
 
 **Only parameters explicitly listed in the parameter table of a command may be used.** Before writing any command, consult the parameter table in the relevant module file and include only parameters that appear there. Do not infer, guess, or transfer parameters from similarly named commands in other modules. For example, `SNO` is valid on `SLN` but does not appear in the `SAR` parameter table and must never be used on `SAR`.
 
 ---
 
-## 11. Common Pitfalls to Avoid
+## 12. Common Pitfalls to Avoid
 
 1. **Missing END**: Every `+PROG` block must be closed with `END`.
 2. **Wrong urs sequence**: `urs:n` values must be unique and sequential across the entire file.
