@@ -14,8 +14,11 @@ When loaded as a skill, Claude reads the reference files in this folder before w
 | SOFIMSHC | `modules/SOFIMSHC.md` | Structural model geometry and meshing |
 | SOFILOAD | `modules/SOFILOAD.md` | Actions, load cases, and load application |
 | ASE | `modules/ASE.md` | Linear, nonlinear, eigenvalue, and dynamic analysis |
+| DECREATOR | `modules/DECREATOR.md` | Design element creation for beam/column members |
+| BEAM | `modules/BEAM.md` | RC beam design checks (bending, shear, reinforcement) |
+| COLUMN | `modules/COLUMN.md` | RC column design checks (axial + biaxial bending) |
 
-DECREATOR, BEAM, COLUMN, and BEMESS modules are planned but not yet documented.
+BEMESS module is planned but not yet documented.
 
 ## Repository structure
 
@@ -31,7 +34,10 @@ sofistik-cadinp/
     ├── AQUA.md                 ← materials & sections (811 lines)
     ├── SOFIMSHC.md             ← structural model & meshing (1318 lines)
     ├── SOFILOAD.md             ← actions & loads (1263 lines)
-    └── ASE.md                  ← analysis engine (810 lines)
+    ├── ASE.md                  ← analysis engine (810 lines)
+    ├── DECREATOR.md            ← design element creation
+    ├── BEAM.md                 ← RC beam design
+    └── COLUMN.md               ← RC column design (NCM)
 ```
 
 ## How to use
