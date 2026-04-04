@@ -17,8 +17,7 @@ When loaded as a skill, Claude reads the reference files in this folder before w
 | DECREATOR | `modules/DECREATOR.md` | Design element creation for beam/column members |
 | BEAM | `modules/BEAM.md` | RC beam design checks (bending, shear, reinforcement) |
 | COLUMN | `modules/COLUMN.md` | RC column design checks (axial + biaxial bending) |
-
-BEMESS module is planned but not yet documented.
+| BEMESS | `modules/BEMESS.md` | RC slab design checks (area reinforcement) |
 
 ## Repository structure
 
@@ -37,14 +36,16 @@ sofistik-cadinp/
     ├── ASE.md                  ← analysis engine (810 lines)
     ├── DECREATOR.md            ← design element creation
     ├── BEAM.md                 ← RC beam design
-    └── COLUMN.md               ← RC column design (NCM)
+    ├── COLUMN.md               ← RC column design (NCM)
+    └── BEMESS.md               ← RC slab/shell design
 ```
 
 ## How to use
 
-1. Add this folder as a Claude skill (e.g. via the project knowledge or skill upload mechanism).
-2. Ask Claude to generate a SOFiSTiK input file for your structure.
-3. Claude will read `SKILL.md`, identify the required modules, load the relevant `.md` files, and produce a `.dat` file.
+1. In Claude, open the **Customize** menu (click the sliders icon in the bottom-left of the chat window).
+2. Under **Skills**, click **Add skill** and select this folder (`sofistik-cadinp/`). Claude will detect the `SKILL.md` entry point automatically.
+3. Ask Claude to generate a SOFiSTiK input file for your structure.
+4. Claude will read `SKILL.md`, identify the required modules, load the relevant `.md` files, and produce a `.dat` file.
 
 ## How to extend
 
