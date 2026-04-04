@@ -45,6 +45,8 @@ END
 | `GRP`   | Select groups, set stiffness factors, creep/shrinkage, construction stages |
 | `EIGE`  | Request eigenvalue or buckling analysis |
 | `STEP`  | Request time-step dynamic analysis (Newmark-Wilson integration) |
+| `CREP`  | Activate creep and shrinkage analysis |
+| `REIQ`  | Import BEMESS reinforcement for nonlinear QUAD analysis |
 
 ---
 
@@ -727,6 +729,78 @@ STEP 100 DT 0.01 LCST 1001 DIV -2
 
 ---
 
+### CREP — Creep and Shrinkage
+
+Activates creep and shrinkage analysis. The actual creep coefficient (`PHI`) and shrinkage strain (`EPS`) are defined per group in the `GRP` record. CREP controls the number of creep steps and the relaxation method.
+
+There are two modes of creep calculation in ASE:
+
+1. **Simplified one-step method** (`CREP 1`): For nonlinear slab analysis in cracked condition. The concrete E-modulus is reduced to E = E0/(1+PHI), and a pre-strain of EPS is applied. Suitable for deflection calculations of slabs with `SYST PROB NONL NMAT YES`.
+
+2. **Multi-step method** (`CREP NCRE`): The total creep is divided into NCRE intervals calculated as separate load cases. Used by CSM for construction stage analysis with primary load cases.
+
+**Syntax:**
+```
+CREP NCRE RO T BEAM RCRE
+```
+
+| Parameter | Type  | Unit    | Default | Description |
+|-----------|-------|---------|---------|-------------|
+| `NCRE`    | int   | —       | 5       | Number of creep steps (1–99). Use `1` for simplified slab deflection. |
+| `RO`      | float | `[-]`   | 0       | Relaxation coefficient according to Trost. Use 0 for prestressed structures; 0.8 for constraint relaxation. |
+| `T`       | float | `[days]`| 0.0     | Effective duration of period (only for CSM creep control) |
+| `BEAM`    | enum  | —       | `ASE`   | `ASE` = calculate creep for beams in ASE; `AQB` = take creep curvatures from AQB (required for prestressed or composite beams) |
+| `RCRE`    | enum  | —       | —       | `CSM` = use partial creep factors from CSM construction stage manager |
+
+> `CREP 1` with `GRP - PHI ... EPS ...` is the standard approach for nonlinear slab deflection checks.
+> PHI affects all concrete elements (BEAM, TRUS, CABL, QUAD, BRIC). PHIF (on GRP) affects springs, boundary elements, and QUAD bedding independently.
+> EPS (shrinkage) must be negative (shortening). In cracked sections, shrinkage acts only on the compression side, increasing deflections.
+
+**Typical usage:**
+```
+$ Simplified slab deflection (one-step, cracked condition)
+CREP 1
+GRP - PHI 2.0 EPS -0.0004          $ phi=2.0, eps_cs=0.4 permille
+
+$ Multi-step creep (5 steps, Trost relaxation)
+CREP 5 RO 0.8
+GRP - PHI 2.5 EPS -0.0005
+```
+
+---
+
+### REIQ — Reinforcement in QUAD Elements
+
+Imports reinforcement from a BEMESS design case into the nonlinear ASE analysis. This allows ASE to perform cracked-state analysis using the actual designed reinforcement rather than just minimum reinforcement. Nodal reinforcements are shifted into adjacent elements to ensure sufficient reinforcement at Gauss points.
+
+**Syntax:**
+```
+REIQ LCR FACT LCRS CHKR
+```
+
+| Parameter | Type  | Unit      | Default | Description |
+|-----------|-------|-----------|---------|-------------|
+| `LCR`     | int   | —         | —       | Design case number from BEMESS (reinforcement distribution to import) |
+| `FACT`    | float | `[-]`     | 1.0     | Multiplication factor on the imported reinforcement |
+| `LCRS`    | int   | —         | 99      | Storage number for the resulting reinforcement distribution (for graphical checks in WINGRAF) |
+| `CHKR`    | float | `[N/mm2]` | —       | Steel stress limit — ASE increases reinforcement during nonlinear iteration where steel stress exceeds this value |
+
+> The minimum reinforcement from BEMESS PARA is always included, regardless of LCR.
+> Reinforcement directions, cover, and bar diameters are taken from BEMESS PARA.
+> If reinforcement is increased due to CHKR, ASE ends with an error message prompting the user to check the new reinforcement in design case LCRS.
+> For a run with only minimum reinforcement (no BEMESS design case), use `NSTR - CHKR 400` instead of REIQ.
+
+**Typical usage:**
+```
+$ Import BEMESS design case 10, store as distribution 91
+REIQ LCR 10 FACT 1.0 LCRS 91
+
+$ Import with steel stress check at 400 N/mm2
+REIQ LCR 1 FACT 1.0 LCRS 99 CHKR 400
+```
+
+---
+
 ## Complete ASE Block Example
 
 ```
@@ -807,3 +881,8 @@ END
 | Creep / shrinkage | `[-]` | PHI, EPS, RELZ, PHIF, PHIS |
 | Combination factors | `[-]` | GAMU, GAMF, PSI0, PSI1, PSI2, PS1S, GAMA |
 | Eigenvalue shift | `[-]` or `[rad²/s²]` | LMIN |
+| Creep steps | `[-]` | NCRE |
+| Relaxation coefficient | `[-]` | RO |
+| Creep duration | `[days]` | T on CREP |
+| Steel stress limit | `[N/mm2]` | CHKR on REIQ |
+| Reinforcement factor | `[-]` | FACT on REIQ |
