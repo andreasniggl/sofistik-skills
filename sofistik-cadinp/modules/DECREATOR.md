@@ -674,6 +674,46 @@ END
 
 ---
 
+## Worked Example — Two-Span Continuous RC Beam
+
+The following DECREATOR block is part of a complete two-span continuous beam workflow (AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → BEAM). Two 6 m spans, simply supported on three hinged supports, C30/37 concrete with B500B rebar, rectangular section 300 x 600 mm.
+
+The design element spans both structural lines (SLN 1 and SLN 2). Support face sections (HFAC) are placed at 125 mm from each support axis (half of a 250 mm support width). Shear sections (SHEA) are placed at 800 mm from start/end and at 5200/6800/11200 mm from start — approximately one effective depth (d ≈ 540 mm) from the support faces. Intermediate sections at HDIV 0.25 m provide smooth force plots.
+
+```
++PROG DECREATOR urs:5
+HEAD Design Elements Definition
+
+DSLN 1 HDIV 0.25 TYPE BEAM
+  DGEO SLN 1
+  DGEO SLN 2
+
+  $ Start support (pinned)
+  DSLC REF STRT S 0.0 TYPM SUPP
+    DSLC REF STRT S 0.125 TYPM HFAC         $ face of support A
+    DSLC REF STRT S 0.8 TYPM SHEA           $ shear section left of span 1
+
+    DSLC REF STRT S 5.2 TYPM SHEA           $ shear section right of span 1
+    DSLC REF STRT S 5.875 TYPM HFAC         $ face of support B (left)
+
+  $ Intermediate support B
+  DSLC REF STRT S 6.0 TYPM SUPP
+    DSLC REF STRT S 6.125 TYPM HFAC         $ face of support B (right)
+    DSLC REF STRT S 6.8 TYPM SHEA           $ shear section left of span 2
+
+    DSLC REF STRT S 11.2 TYPM SHEA          $ shear section right of span 2
+    DSLC REF STRT S 11.875 TYPM HFAC        $ face of support C
+
+  $ End support C
+  DSLC REF STRT S 12 TYPM SUPP
+
+LC ALL                                       $ transfer all load cases
+
+END
+```
+
+---
+
 ## Unit Summary for DECREATOR
 
 | Quantity | Unit | Parameters |
