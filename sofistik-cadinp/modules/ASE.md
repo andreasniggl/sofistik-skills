@@ -30,6 +30,7 @@ END
 > ASE requires a model in the database (from SOFIMSHC) and materials/sections (from AQUA) before execution.
 > Loads are typically defined with SOFILOAD prior to the ASE block; ASE can also define dead load factors inline via LC.
 > For nonlinear analysis (PROB NONL/TH2/TH3), iteration parameters are set in SYST and CTRL.
+> **Nonlinear one-LC-per-block rule:** In nonlinear analysis (`PROB NONL`, `NMAT YES`, `TH2`, `TH3`), each load case must be calculated in its own separate `+PROG ASE ... END` block. Unlike linear analysis where multiple `LC` records can appear in a single block, nonlinear analysis requires a fresh block per load case because the iteration state, stiffness matrix, and convergence are load-case-specific. Combine linear load cases freely in one block; separate nonlinear ones.
 
 ---
 
@@ -439,6 +440,27 @@ LC 1 TYPE G   GAMU 1.35 GAMF 1.00
 $ Calculate all existing load cases
 LC ALL
 ```
+
+> **Nonlinear analysis:** Each nonlinear load case must be in its own `+PROG ASE ... END` block. Do not place multiple `LC` records in a single nonlinear ASE block — use separate blocks instead:
+> ```
+> +PROG ASE urs:10
+> SYST PROB NONL NMAT YES ITER 300 TOL -0.5
+> CREP 1
+> REIQ LCR 10 FACT 1.0 LCRS 91
+> GRP - PHI 2.0 EPS -0.0004
+> LC 311 FACD 1.0 TITL "NONL: G + 0.3Q(both)"
+>   LCC 211
+> END
+>
+> +PROG ASE urs:11
+> SYST PROB NONL NMAT YES ITER 300 TOL -0.5
+> CREP 1
+> REIQ LCR 10 FACT 1.0 LCRS 91
+> GRP - PHI 2.0 EPS -0.0004
+> LC 312 FACD 1.0 TITL "NONL: G + 0.3Q(span1)"
+>   LCC 212
+> END
+> ```
 
 ---
 
