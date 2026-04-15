@@ -203,6 +203,75 @@ if abs(revit_length_m - sof_length_m) > 1e-3:
 
 Add a Watch node after the conversion step and verify against a hand calculation on one element before running the script over the whole model. Off-by-3.28 errors are the single most common cause of "wrong" Dynamo scripts.
 
+## Classifying analytical elements by StructuralRole
+
+`AnalyticalMember` and `AnalyticalPanel` both inherit from `AnalyticalElement` and both expose the property **`StructuralRole`**, which returns an `Autodesk.Revit.DB.Structure.AnalyticalStructuralRole` enum. This is the canonical way to tell beams / columns / walls / slabs apart — do **not** infer from element category name or from panel geometry (normal vector).
+
+### The `AnalyticalStructuralRole` enum (Revit 2024+)
+
+Member names are stable across Revit 2024–2026 (verified in API docs and the SDK samples). Integer values below come from empirical inspection — Autodesk does not publish them — so if classification stops working after a Revit upgrade, dump `int(role)` once to confirm the mapping still holds.
+
+| Member name            | Int value | Typical meaning                          |
+|------------------------|-----------|------------------------------------------|
+| `Unset`                | -1        | No structural role assigned (skip)       |
+| `StructuralRoleBeam`   | 0         | Beam                                     |
+| `StructuralRoleColumn` | 1         | Column                                   |
+| `StructuralRoleMember` | 3         | Generic member (brace / other) — skip    |
+| `StructuralRoleGirder` | 4         | Girder — **treat as beam**               |
+| `StructuralRoleFloor`  | 5         | Floor / slab (there is no `Slab` member) |
+| `StructuralRoleWall`   | 6         | Wall                                     |
+| `StructuralRolePanel`  | 7         | Generic panel — skip                     |
+
+### Rules
+
+1. **Classify by integer value, not by string.** In Dynamo 3.6's CPython3 the `str()` of a .NET enum is not guaranteed to be just the member name — it can include the namespace (`Autodesk.Revit.DB.Structure.AnalyticalStructuralRole.StructuralRoleBeam`) or vary across runtimes. `int(role)` is stable.
+2. **Skip generics.** `StructuralRoleMember (3)`, `StructuralRolePanel (7)` and `Unset (-1)` are generic / uninitialised — skip them and count the skip in your summary so the user can see how many didn't classify.
+3. **Guard the property read.** Wrap access in `try/except` and record the first exception to surface in the Watch — without a guard, a single broken element silently kills the whole classification.
+4. **Always surface diagnostics.** When a classifier returns `None` for every element, it is impossible to debug without a histogram of the role values actually seen. Include one in the summary (`name (int) -> count`), at least during development.
+
+### Canonical snippet
+
+```python
+# Integer-keyed role map — the only safe way to classify analytical
+# elements across Dynamo runtimes. Values come from
+# Autodesk.Revit.DB.Structure.AnalyticalStructuralRole.
+ROLE_MAP = {
+    0: "beam",    # StructuralRoleBeam
+    1: "column",  # StructuralRoleColumn
+    4: "beam",    # StructuralRoleGirder   — treat as beam
+    5: "slab",    # StructuralRoleFloor    — the enum has no "Slab"
+    6: "wall",    # StructuralRoleWall
+    # -1 Unset, 3 StructuralRoleMember, 7 StructuralRolePanel -> skip
+}
+
+_role_hist = {}                       # "<name> (<int>)" -> count
+_role_first_error = [None]            # boxed so the inner function can write to it
+
+def classify_by_role(el):
+    """Return 'beam' | 'column' | 'wall' | 'slab' | None."""
+    try:
+        role = el.StructuralRole       # may raise on broken / wrong-type elements
+        rint = int(role)
+    except Exception as e:
+        if _role_first_error[0] is None:
+            _role_first_error[0] = "{}: {}".format(type(e).__name__, e)
+        return None
+    key = "{} ({})".format(role, rint)
+    _role_hist[key] = _role_hist.get(key, 0) + 1
+    return ROLE_MAP.get(rint)
+```
+
+Append the histogram to the Watch / summary output so the user can see what the model actually contains:
+
+```
+Observed StructuralRole values (name (int) -> count):
+  StructuralRoleBeam (0)   -> 412
+  StructuralRoleColumn (1) -> 286
+  StructuralRoleWall (6)   -> 150
+  StructuralRoleFloor (5)  -> 64
+  Unset (-1)               -> 5
+```
+
 ## Common pitfalls
 
 - **Returning `None` from `OUT`** — Dynamo treats this as "no output", and downstream nodes break. If your script logically has nothing to return, set `OUT = []` or a status string.
