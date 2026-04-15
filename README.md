@@ -7,6 +7,7 @@ A collection of Claude skills for working with [SOFiSTiK](https://www.sofistik.c
 | Skill | Folder | Description |
 |-------|--------|-------------|
 | **CADINP File Generation** | [`sofistik-cadinp/`](sofistik-cadinp/) | Generate syntactically correct SOFiSTiK analysis input files in the CADINP language (`.dat` files). Covers materials & sections (AQUA), structural modelling & meshing (SOFIMSHC), load definition (SOFILOAD), linear/nonlinear/eigenvalue/dynamic analysis (ASE), design element creation (DECREATOR), and RC design checks for beams (BEAM), columns (COLUMN), and slabs (BEMESS). |
+| **Revit Dynamo Script Generation** | [`sofistik-dynamo/`](sofistik-dynamo/) | Build Revit Dynamo scripts (`.dyn`) for Revit 2026 / Dynamo 3.6 that evaluate or modify Revit models and read SOFiSTiK FEA results via the SOFiSTiK Analysis + Design Dynamo package. Includes a Python builder library, a quick-reference for the SOFiSTiK Zero-Touch nodes, runnable starter templates, and built-in lints for the Revit 2024+ `ElementId.Value` / `UnitTypeId` API and SOFiSTiK ↔ Revit unit conversions. |
 
 ## How to add a skill to Claude
 
@@ -14,7 +15,7 @@ A collection of Claude skills for working with [SOFiSTiK](https://www.sofistik.c
 
 The simplest way to use a skill. Works identically on Claude Desktop and claude.ai (requires a Pro, Max, Team, or Enterprise plan).
 
-1. Download the skill folder (e.g. `sofistik-cadinp/`).
+1. Download the skill folder (e.g. `sofistik-cadinp/` or `sofistik-dynamo/`).
 2. In Claude, click the **Customize** icon (sliders icon in the bottom-left of the chat window).
 3. Under **Skills**, click **Add skill** and select the skill folder. Claude will detect the `SKILL.md` entry point automatically.
 4. The skill appears in your skills list — toggle it on or off as needed.
@@ -34,7 +35,7 @@ That's it. Claude automatically detects when the skill is relevant based on the 
 
 - Each skill folder is self-contained — you only need the files inside it.
 - `SKILL.md` is always the entry point. Claude reads it first, then loads the specific module files needed for the task.
-- Skills can be combined. For example, a future result-processing skill could work alongside `sofistik-cadinp` in the same conversation.
+- Skills can be combined. For example, `sofistik-cadinp` (input file generation) and `sofistik-dynamo` (Revit-side automation) can be active in the same conversation when a workflow spans both the analysis input and the Revit model.
 
 
 ## License
