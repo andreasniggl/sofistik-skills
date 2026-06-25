@@ -45,52 +45,65 @@ An `.err` file has four distinct sections in order:
 
 ## Section 2 — Command Definitions
 
+### Column layout
+
+Every definition line follows a fixed column layout:
+
+| Columns | Width | Content |
+|---------|-------|---------|
+| 0–3     | 4     | Line type code (see below) |
+| 4–7     | 4     | Command name (blank on continuation lines) |
+| 8+      | 5 each | Parameter tokens in fixed 5-character blocks |
+
 ### Line type codes
 
-The first four characters of every command definition line form a **line type code** with the structure:
+The first four characters form the **line type code**:
 
 ```
--<version><subtype>
+-<language><type><index>
 ```
 
 | Position | Values | Meaning |
 |----------|--------|---------|
-| col 1 | `-` | Always a dash — identifies a definition line |
-| col 2 | `1` `2` `*` | Language version: `1`=German, `2`=English, `*`=language-independent |
-| col 3 | `0`–`9` `A`–`F` | Subtype (see table below) |
-| col 4 | space | Separator (or part of subtype for two-digit subtypes) |
+| col 0 | `-` | Always a dash — identifies a definition line |
+| col 1 | `1` `2` `*` | Language: `1`=German, `2`=English, `*`=language-independent |
+| col 2 | `0`–`9` `A`–`Z` | Line type (see table below) |
+| col 3 | space, `0`–`9`, `A`–`Z` | Parameter position index (for enum/unit lines) or space |
 
-> Lines beginning with any other character are not definition lines (they are messages or output text).
-
-### Subtype codes
+### Line type codes (col 2)
 
 | Code | Meaning |
 |------|---------|
-| `0 ` | Main parameter line for a command or its continuation |
-| `2 ` | Default values line — column-aligned with the preceding `*0` or `10`/`20` line |
-| `7 ` | Human-readable syntax summary line (printed in error output) |
-| `11` | Enum value list — one set per line, 10 values per line |
-| `12` | Secondary enum list (bitmask flags or alternative sets) |
-| `13` | Tertiary enum list |
-| `14` | Quaternary enum list |
-| `15` | Quinary enum list |
-| `16` | Senary enum list |
-| `17` | Septenary enum list |
-| `18` | Octonary enum list |
-| `19` | Nonary enum list |
-| `1B` | Geometry sub-type enum (curves, surfaces) |
-| `1C` | Curve type enum continuation |
-| `1E` | Position / reference enum |
-| `1R` | Mode enum (e.g. mesh control modes) |
-| `1L` | Line-based type list |
+| `0`  | Main parameter line for a command or its continuation |
+| `1`  | Enum value list for the parameter at the position given by col 3 |
+| `2`  | Unit/default values line — column-aligned with the immediately preceding parameter line |
+| `3`  | Error reference (cross-reference to another command's messages) |
+| `7`  | Human-readable syntax summary line (printed in error output) |
+
+### Parameter position index (col 3 on enum lines)
+
+On enum lines (type `1`), col 3 encodes the **1-indexed position** of the parameter that receives the enum values. Counting includes `XXXX` placeholder slots:
+
+| Col 3 | Position (1-indexed) |
+|-------|---------------------|
+| `1`   | 1st parameter |
+| `2`   | 2nd parameter |
+| …     | … |
+| `9`   | 9th parameter |
+| `A`   | 10th parameter |
+| `B`   | 11th parameter |
+| …     | … |
+| `Z`   | 35th parameter |
+
+**Example:** For command SAR with parameters `'NO "FIX XXXX XXXX XXXX 'GRP MNO MRF "REF NX NY NZ NRA "QREF ...`, the line `-21E ABOV CENT BELO` assigns enums `ABOV`, `CENT`, `BELO` to the parameter at position `E` (14th) = `QREF`.
 
 ### Language version pairing
 
-Command records always appear in pairs: a version-1 (German, historical) line and a version-2 (English, current) line with identical structure but language-specific parameter names.
+Command records always appear in pairs: a version-1 (German) line and a version-2 (English) line with identical structure but language-specific parameter names.
 
 ```
--10 SPT  NR   X    Y    Z   "REF 'NREF XXXX"FIX  ...
--20 SPT  NO   X    Y    Z   "REF 'NREF XXXX"FIX  ...
+-10 SPT 'NR  X    Y    Z   "REF 'NREF XXXX"FIX  ...
+-20 SPT 'NO  X    Y    Z   "REF 'NREF XXXX"FIX  ...
 ```
 
 The parser uses version-2 (`-2x`) names for all modern input. Version-1 (`-1x`) names remain accepted for backwards compatibility.
@@ -102,16 +115,21 @@ Language-independent lines (`-*x`) apply to both versions simultaneously.
 ### Main parameter lines (`-10`, `-20`, `-*0`)
 
 ```
--20 CMD 'P1  "P2  P3  `P4  =P5  !P6  XXXX P7
+-20 SAR 'NO  "FIX  XXXX XXXX XXXX'GRP  MNO  MRF "REF  NX   NY   NZ
 ```
 
-**Field layout (free-column after line type):**
+**Field layout:**
 
-| col 1–3 | col 4 | col 5–8 | col 9 onward |
-|---------|-------|---------|--------------|
-| `-20` | space | `CMD ` | space-separated parameter tokens |
+| Columns | Content |
+|---------|---------|
+| 0–3     | Line type: `-20 ` |
+| 4–7     | Command name: `SAR ` (4 chars, space-padded) |
+| 8–12    | 1st parameter: `'NO  ` (5-char block) |
+| 13–17   | 2nd parameter: `"FIX ` (5-char block) |
+| 18–22   | 3rd parameter: `XXXX ` (5-char block) |
+| …       | subsequent 5-char blocks |
 
-Each **parameter token** is exactly 4 or 5 characters wide (space-padded). The leading character is a **type prefix**:
+Each **parameter token** occupies exactly 5 characters (4 content + 1 space padding). The leading character is a **type prefix**:
 
 | Prefix | Type | Input accepted |
 |--------|------|----------------|
@@ -124,9 +142,11 @@ Each **parameter token** is exactly 4 or 5 characters wide (space-padded). The l
 | *(none)*| Float | Real number, optionally with unit suffix |
 | `XXXX` | Placeholder | Reserved position — value accepted but currently unused |
 
+Note: a parameter may accept values of multiple types. For example, `'NO` (integer) may also accept enum values assigned to its position via enum lines.
+
 #### Continuation lines
 
-When a command has more parameters than fit on one line, they continue on subsequent `-*0` lines (no command name, just parameters):
+When a command has more parameters than fit on one line, they continue on subsequent `-*0` lines. The command name slot (columns 4–7) is blank, and parameters continue in 5-char blocks from column 8:
 
 ```
 -20 SAR 'NO  "FIX  XXXX XXXX XXXX'GRP  MNO  MRF "REF  NX   NY   NZ
@@ -134,49 +154,78 @@ When a command has more parameters than fit on one line, they continue on subseq
 -*0     'MCTL H1   H2   H3  'XFLG
 ```
 
----
+A `-*0` line is a **continuation** of the current command's parameters (not a new command) when the command name slot is blank — even if the first parameter token looks like a command name (e.g. `NRA`).
 
-### Default values lines (`-*2`)
-
-Immediately follows the parameter line(s) it annotates. Each token is column-aligned with its corresponding parameter above and encodes the **unit** or **maximum** for that parameter using a 4-digit code:
-
-```
--*2           1001 1001 1001                                    1001 1001 1010
-```
-
-Blank columns mean no constraint or unit. Defined codes:
-
-| Code | Meaning |
-|------|---------|
-| `9999` | Maximum allowed value |
-| `1001` | Unit: metres `[m]` |
-| `1010` | Unit: millimetres `[mm]` |
-| `1002` | Unit: dimensionless area ratio |
-| `1006` | Unit: metres (level / elevation) `[m]` |
-| `1024` | Unit: metres (area dimension) |
-| `1096` | Unit: spring stiffness `[kN/m]` |
-| `1097` | Unit: rotational spring `[kNm/rad]` |
-| `1098` | Unit: spring stiffness per area |
-| `1099` | Unit: torsional spring |
-| `0005` | Unit: degrees `[°]` |
-| `0062` | Integer count |
+A `-*0` line defines a **sub-command** only when the first token starts with the parent command's prefix (e.g. `SARB` under `SAR`, `GAXH` under `GAX`).
 
 ---
 
-### Enum value lines (`-*11`, `-111`, `-211`, etc.)
+### Unit/default lines (`-*2`)
 
-List the valid literal values for the most recently defined keyword (`"`) parameter. Up to 10 values per line, each 4–5 characters wide, space-padded. Use `....` as a placeholder for a reserved but unassigned position.
+Immediately follows the parameter line it annotates. Each 5-char column block is **aligned with the corresponding parameter** on the preceding line. A blank block means no unit constraint.
 
 ```
--*11     MESH ADAP BSEC SDIV RELA .... EDRL DELN NODE TOPO
--*11     OPTI PSUP LSUP PART SUB  WARN NUM  INIT LOCA REST
--111     HMIN FEIN PROG HFAK EFAK TOLG TOLN .... .... HEAL
--211     HMIN FINE PROG HFAC EFAC TOLG TOLN .... .... HEAL
+-20 SAR 'NO  "FIX  XXXX XXXX XXXX'GRP  MNO  MRF "REF  NX   NY   NZ
+-*0      NRA "QREF'KR  'DRX  DRY  DRZ  DROT T    TX   TY   TXY  TD   CB   CT
+-*2                                    0005 1010 1010 1010 1010 1010 9999 9999
+-*0     'MCTL H1   H2   H3  'XFLG
+-*2           1001 1001 1001
 ```
 
-Multiple `*11` lines extend the enum list. `111` / `211` lines are language-specific synonyms for the same positions (German / English names for the same enum slots).
+In this example, the `-*2` on line 3 annotates the `-*0` on line 2. The `0005` in column block 6 (counting from 0) aligns with `DROT`, assigning it the unit code for degrees.
 
-Subtypes `12` through `19`, `1B`, `1C`, `1E`, `1R`, `1L` follow the same value-list structure but apply to secondary enum parameters — their association with a specific `"` parameter is positional within the command block.
+The `-*2` on line 5 annotates the `-*0` on line 4. The `1001` values align with `H1`, `H2`, `H3`, assigning them the unit code for metres.
+
+Unit codes are 4-digit identifiers defined in `docs/Implicit_Units.txt`. Common codes:
+
+| Code | CDBASE unit | Description |
+|------|-------------|-------------|
+| `1001` | m | Geometric length |
+| `1010` | m | Thickness |
+| `1011` | mm | Cross-section dimension |
+| `1012` | m2 | Cross-section area |
+| `1014` | m4 | 4th order section area |
+| `1020` | cm2 | Reinforcement area |
+| `1023` | mm | Reinforcement diameter |
+| `1024` | mm | Cover / static distance |
+| `1090` | N/mm2 | Material modulus |
+| `1092` | N/mm2 | Material stress |
+| `1095` | kN/m | Elastic support (force/deformation) |
+| `1096` | kN/m2 | Elastic support (force/deformation/length) |
+| `1097` | kN/m3 | Elastic support (force/deformation/area) |
+| `1098` | kNm/rad | Elastic support (moment/rotation) |
+| `1101` | kN | Beam normal force |
+| `1104` | kNm | Beam bending moment |
+| `1111` | kN/m | Plate membrane force |
+| `1114` | kNm/m | Plate bending moment |
+| `1200` | ° | Angle |
+| `1215` | °C | Temperature |
+| `1290` | sec | Time |
+| `0005` | ° | Degrees (legacy code) |
+| `9999` | - | Maximum allowed value / dimensionless |
+
+See `docs/Implicit_Units.txt` for the complete mapping.
+
+---
+
+### Enum value lines (`-*1X`, `-11X`, `-21X`)
+
+List the valid literal values for the parameter at position `X` (encoded in col 3). Up to 10 values per line, each in a 5-character block. Use `....` as a placeholder for a reserved but unassigned position.
+
+```
+-*11     PROP VOID
+-11E     OBEN MITT UNTE
+-21E     ABOV CENT BELO
+-*1R     AUTO REGM SNGQ OFF
+```
+
+In this example (from SAR):
+- `-*11` → position `1` (1st param = `NO`) receives enums `PROP`, `VOID`
+- `-21E` → position `E` (14th param = `QREF`) receives English enums `ABOV`, `CENT`, `BELO`
+- `-11E` → same position, German enums `OBEN`, `MITT`, `UNTE`
+- `-*1R` → position `R` (27th param = `MCTL`) receives enums `AUTO`, `REGM`, `SNGQ`, `OFF`
+
+Multiple lines with the same subtype extend the enum list. Language-specific lines (`-11X` / `-21X`) provide German / English synonyms for the same enum slots. Language-independent lines (`-*1X`) apply to both.
 
 ---
 
@@ -193,16 +242,19 @@ One human-readable line describing the command syntax, used in error output. No 
 
 ### Command aliases (`=` lines)
 
-Short alias or translation mappings at the top of the file:
+Alias definitions that register a command name the module accepts. These appear near the top of the file and define commands with no parameters of their own (the command simply enables a feature or inherits parameters from elsewhere).
 
 ```
 -10=KOPF
 -20=HEAD
--10=ENDE
--20=END
+-10=BETO
+-20=CONC
+-*0=MAT
 ```
 
-Format: `-<version>=<ALIAS>` — the parser treats the alias as equivalent to the full command name that follows.
+Format: `-<language>=<NAME>` or `-*0=<NAME>`.
+
+German/English pairs (e.g. `BETO`/`CONC`) register both names. Language-independent aliases (`-*0=MAT`) register a single name for both languages.
 
 ---
 
@@ -348,7 +400,10 @@ The German and English blocks are separated by `000 ***...***` comment lines:
 
 - Line endings are Windows CRLF (`\r\n`).
 - The file may begin with a UTF-8 BOM (`\xEF\xBB\xBF`) or have no BOM (ANSI).
-- Column alignment of parameter tokens is by convention 5 characters (4 + 1 space); the parser is whitespace-tolerant on continuation lines.
+- The fixed column layout is: 4 chars line type, 4 chars command name, then 5-char parameter blocks.
 - `XXXX` parameter slots are syntactically valid but semantically reserved — the parser accepts a value but the module ignores it.
 - The `0000` header section must appear before any `-` command lines.
 - Message number `000` with any severity code is always treated as a comment and never emitted.
+- A `-*0` continuation line is distinguished from a new command by context: if the command name slot (cols 4–7) is blank and a current command exists, it is a continuation.
+- Enum values can be assigned to any parameter type, not just keyword (`"`) parameters. The position index determines the target parameter.
+- Unit codes reference the implicit unit system defined in `docs/Implicit_Units.txt`.
