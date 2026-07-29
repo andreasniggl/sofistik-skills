@@ -185,6 +185,17 @@ Rhino document name. Never bake in an absolute path. See
 `db.GetSecondaryKeysOf(102)` gives every load case with beam forces. Note that
 some published SOFiSTiK examples use the other name; they target a later version.
 
+**Some keys need an explicit type dispatcher.** `ReadData(kwh, kwl)` resolves
+the managed type from an internal lookup table; a key that is not registered
+throws *"type dispatcher must be defined explicitly"*. The fix is the overload
+`ReadData(kwh, kwl, (id0, id1) => typeof(...))` - the lambda maps the record's
+first two integers (the selectors in the type index) to a concrete type, `null`
+to skip. The generic `ReadData<T>` in the assembly is `internal` and not
+callable from scripts. See "The explicit type dispatcher" in
+`references/recipes.md` for the pattern and known affected keys (`170/0`
+springs among them). If the id0/id1 -> type mapping is not obvious from the
+selector column, ask the user how the mapping should look instead of guessing.
+
 **Check what `Open` returns.** It returns `bool`. A missing file, or a CDB still
 locked by SSD or a running analysis, returns `false`, and every subsequent
 `ReadData` comes back empty - which reads like "the model has no results" rather

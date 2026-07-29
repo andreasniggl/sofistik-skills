@@ -18,11 +18,77 @@ var members = string.Join("\n", typeof(CdbBeam_for)
 // send `members` to an output, or RhinoApp.WriteLine(members)
 ```
 
-Contents: [load cases](#load-cases) - [groups](#groups) -
+Contents: [explicit type dispatcher](#the-explicit-type-dispatcher) -
+[load cases](#load-cases) - [groups](#groups) -
 [nodes and beams](#nodes-and-beams) - [nodal displacements and reactions](#nodal-displacements-and-support-reactions) -
 [beam forces](#beam-forces) - [beam stresses](#beam-stresses) -
 [quads](#quad-elements-and-results) - [cross sections](#cross-section-polygons) -
-[tendons](#tendon-geometry)
+[tendons](#tendon-geometry) - [springs](#springs)
+
+---
+
+## The explicit type dispatcher
+
+`ReadData(kwh, kwl)` resolves which managed type each raw record becomes through
+an internal lookup table keyed by kwh/kwl. Not every key is registered. An
+unregistered key throws
+
+> *"For the given kwh/kwl combination …, type dispatcher must be defined explicitly."*
+
+and the fix is the third overload, which takes the mapping as a lambda:
+
+```csharp
+public List<ICdbElement> ReadData(int kwh, int kwl, Func<int, int, Type> elementTypeFactory)
+```
+
+The lambda receives the record's **first two integers** (`id0`, `id1`) and
+returns the concrete `Cdb*` type to marshal the record into - or `null` to skip
+the record entirely. These two integers are exactly the *selectors* in
+`cdb_type_index.md`, so the selector column tells you how to write the lambda:
+
+```csharp
+// 170/00 holds only CdbSpri - constant mapping
+var springs = database
+    .ReadData(170, 0, (id0, id1) => typeof(CdbSpri))
+    .OfType<CdbSpri>()
+    .ToList();
+
+// A key with selector 0 and selector + records - switch on id0,
+// mirroring the internal table's own dispatchers:
+var results = database.ReadData(kwh, lc, (id0, id1) =>
+{
+    switch (id0)
+    {
+        case 0:                     return typeof(CdbSpri_re0);   // selector 0
+        case int i when (i > 0):    return typeof(CdbSpri_res);   // selector +
+        default:                    return null;                  // skip
+    }
+});
+```
+
+Keep the trailing `.OfType<T>()` even with a constant lambda: the overload
+returns `List<ICdbElement>`, and the filter also drops any record the lambda
+mapped to a different type.
+
+Three rules for writing the lambda:
+
+- **Derive it from the selector column** of `cdb_type_index.md`, never from
+  guesswork. `+` means `id0 > 0`, `0` means `id0 == 0`, `-` means `id0 < 0`,
+  `Z!` any non-zero, a second selector constrains `id1` the same way.
+- **Return `null` for anything you did not ask for.** A wrong type here does not
+  fail loudly - it marshals the bytes into the wrong struct layout and produces
+  plausible-looking garbage numbers.
+- **If the mapping is not obvious** - the selector column is ambiguous, the key
+  is missing from the index, or several types overlap - **ask the user how the
+  id0/id1 → type mapping should look** rather than inventing one. They can read
+  it off the internal table or the `cdbase.txt` record description.
+
+There is also a generic `ReadData<T>(kwh, kwl)` in the assembly, but it is
+`internal` - scripts cannot call it. The lambda overload is the public route.
+
+Known keys that need the explicit dispatcher: `170/0` (`CdbSpri` - spring
+definitions; at KWH 170 the kwl doubles as the load case of the result records,
+so kwl 0 is ambiguous to the internal table).
 
 ---
 
@@ -474,3 +540,42 @@ Using local ordinates is what makes the bridge axis come out as a straight
 horizontal line at 0, independent of the plan curvature. Transform to global
 first and a curved bridge produces a curved "axis", which is wrong for a design
 elevation.
+
+---
+
+## Springs
+
+`170/0` -> `CdbSpri`, one record per spring element. **This key needs the
+[explicit type dispatcher](#the-explicit-type-dispatcher)** - the plain
+`ReadData(170, 0)` throws, because at KWH 170 the kwl doubles as the load case
+number of the result records and the internal table cannot resolve kwl 0.
+
+| Field | Meaning | Unit |
+|---|---|---|
+| `Nr` | spring number | - |
+| `Node[0]`, `Node[1]` | start / end node; end is 0 for a spring to ground | - |
+| `T` | direction of the spring axis, global components | - |
+| `Cp`, `Cq`, `Cm` | axial / transverse / rotational stiffness | kN/m, kNm/rad |
+| `Pre` | prestress | kN |
+
+```csharp
+var springs = database
+    .ReadData(170, 0, (id0, id1) => typeof(CdbSpri))
+    .OfType<CdbSpri>()
+    .ToList();
+
+// which spring supports which node - springs to ground sit on their start node
+var springByNode = new Dictionary<int, int>();
+foreach (var s in springs)
+{
+    if (s.Node[0] > 0 && !springByNode.ContainsKey(s.Node[0]))
+        springByNode[s.Node[0]] = s.Nr;
+}
+```
+
+**Traps.** Several springs can share a node (e.g. one per direction from a
+point support with independent stiffnesses); decide whether first-wins or a
+list-per-node is right for the job and say so in the plan. Spring *results* live
+at `170/LC` (`CdbSpri_res`, selector `+`; `CdbSpri_re0` maxima at selector `0`)
+and need a switching dispatcher - the example in the dispatcher section above is
+exactly that key.
