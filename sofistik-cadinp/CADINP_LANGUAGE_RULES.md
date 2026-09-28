@@ -25,8 +25,10 @@ END
 Modules must be ordered so that outputs of earlier modules are available as inputs to later ones. The canonical order is:
 
 ```
-AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → BEAM → COLUMN → BEMESS
+AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → MAXIMA → AQB → BEAM → COLUMN → BEMESS
 ```
+
+A stand-alone cross-section design uses only `AQUA → AQB`. The same module may appear in several `+PROG` blocks (e.g. two AQB blocks for ULS design and SLS crack width), each with its own `urs` number.
 
 ---
 
@@ -261,6 +263,27 @@ PARA NOG - DU #D ASU #AS ASL #AS
 > Variables defined in one `+PROG` block are available in all subsequent blocks of the same `.dat` file.
 > `LET` commands can appear anywhere — before or within a `+PROG` block.
 > Use variables for parametric studies and to avoid repeating derived values.
+
+### 9.4 Stored Variables (STO)
+
+`STO#name value` defines a variable like `LET` but additionally **saves it in the database**, so it is available in every later `+PROG` block (and later runs on the same database). Use `STO` for project parameters that are reused across modules, e.g. a creep factor used in MAXIMA or a fire exposure time used in AQUA:
+
+```
++PROG AQUA urs:1
+HEAD Materials, sections and project parameters
+NORM DC DIN NDC EN199X-200X
+STO#KDEF 0.6        $ deformation coefficient k_def (timber)
+STO#T_FI 30         $ fire exposure time [min]
+...
+END
+
++PROG MAXIMA urs:6
+...
+  ACT TYPE G
+    LC 0 FACT #KDEF
+...
+END
+```
 
 ---
 

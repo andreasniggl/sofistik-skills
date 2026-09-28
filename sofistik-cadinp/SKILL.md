@@ -3,8 +3,10 @@ name: sofistik-cadinp
 description: >
   Generate syntactically correct SOFiSTiK structural analysis input files in the
   CADINP language (.dat files). Covers materials and sections (AQUA), structural
-  modelling and meshing (SOFIMSHC), load definition (SOFILOAD), and linear,
-  nonlinear, eigenvalue and dynamic analysis (ASE). Use this skill whenever the
+  modelling and meshing (SOFIMSHC), load definition (SOFILOAD), linear,
+  nonlinear, eigenvalue and dynamic analysis (ASE), superposition and envelopes
+  of load cases (MAXIMA), RC/steel/timber cross-section design (AQB), and member
+  and slab design (DECREATOR, BEAM, COLUMN, BEMESS). Use this skill whenever the
   user asks to create, edit, or review SOFiSTiK input, or mentions .dat files,
   CADINP, or SOFiSTiK FEA.
 ---
@@ -28,11 +30,21 @@ Before generating any input file:
 Before writing ANY line of CADINP input, Claude MUST complete the following steps in order.
 Skipping or partially reading any step is not permitted.
 
+0. **Clarify the workflow with the user when design or load combinations are involved.**
+   - If the task needs load case combinations (any ULS/SLS verification, any design module),
+     **ask the user how the superposition load cases shall be built** — see
+     *Superposition Strategy* below. Do not choose silently.
+   - If the task is a section design (AQB), ask whether it is a **stand-alone section design**
+     with given internal forces (AQUA + AQB) or a **section design on a full system**
+     (AQUA + SOFIMSHC + SOFILOAD + ASE + combinations + AQB), unless the request makes this obvious.
+   - Skip a question only if the user has already answered it explicitly in the request.
+
 1. **Read `CADINP_LANGUAGE_RULES.md` in full.**
    Confirm: unit annotation rules, continuation marker `$$`, sub-record indentation,
    NO uniqueness rule, strict parameter compliance rule, and common pitfalls list.
 
-2. **Read every required module file in full** (as determined by the Module Selection Guide).
+2. **Read every required module file in full** (as determined by the Module Selection Guide),
+   and `SUPERPOSITION_STRATEGY.md` whenever load case combinations are involved.
    For each module, confirm before moving on:
    - All command syntaxes and parameter tables for commands you will use
    - All sub-record rules (e.g. SLNS for line supports, SARB boundary-only role)
@@ -65,12 +77,14 @@ Each module is a `+PROG` block in the generated file. Load only the sub-files ne
 | SOFIMSHC      | `modules/SOFIMSHC.md`           | Structural model geometry, meshing                  | Any structural analysis                           |
 | SOFILOAD      | `modules/SOFILOAD.md`           | Actions, load cases, load application               | Any analysis with external loads                  |
 | ASE           | `modules/ASE.md`                | Linear/non-linear FEM analysis of load cases        | All load case analysis                            |
+| MAXIMA        | `modules/MAXIMA.md`             | Automatic superposition / envelopes of linear load cases per design code | Linear workflows with code combinations (user choice, see Superposition Strategy) |
 | DECREATOR     | `modules/DECREATOR.md`          | Design element creation for beam/column members     | RC beam/column design checks                      |
+| AQB           | `modules/AQB.md`                | Cross-section design: RC reinforcement (bending, axial force, shear), crack width, stresses, steel/timber section checks | RC/steel/timber section design — stand-alone or on beam members of a full system |
 | BEAM          | `modules/BEAM.md`               | RC beam design checks (bending, shear, reinforcement) | RC beam design                                 |
 | COLUMN        | `modules/COLUMN.md`             | RC column design checks (axial + biaxial bending)   | RC column design                                  |
 | BEMESS        | `modules/BEMESS.md`             | RC slab design checks (area reinforcement)          | RC slab design                                    |
 
-> Additional modules will be added in subsequent steps (e.g., AQB for section checks, DYNA for dynamics).
+> Additional modules will be added in subsequent steps (e.g., DYNA for dynamics).
 
 ---
 
@@ -82,12 +96,27 @@ Use the following decision logic to select the required modules:
 Any model          → AQUA + SOFIMSHC
 Has external loads → + SOFILOAD
 Static analysis    → + ASE
+Load combinations  → ask the user (see Superposition Strategy):
+                       automatic envelopes (linear)      → + MAXIMA (after ASE)
+                       explicit combination load cases   → SOFILOAD LC ... TYPE (D) + COPY, analysed in ASE
+RC/steel section design, forces given     → AQUA + AQB
+RC/steel section design on a full system  → AQUA + SOFIMSHC + SOFILOAD + ASE + (MAXIMA) + AQB
 RC beam design     → + DECREATOR + BEAM
 RC column design   → + DECREATOR + COLUMN
 RC slab design     → + BEMESS
 ```
 
-Note: DECREATOR is required before BEAM or COLUMN, as it creates the design elements those modules operate on. BEMESS works directly on mesh elements from SOFIMSHC and does not require DECREATOR.
+Note: DECREATOR is required before BEAM or COLUMN, as it creates the design elements those modules operate on. BEMESS works directly on mesh elements from SOFIMSHC and does not require DECREATOR. AQB designs beam elements directly (or DECREATOR design elements with `BEAM TYPE DSLN`); it does not design QUAD elements — use BEMESS for slabs and walls.
+
+---
+
+## Superposition Strategy (mandatory question)
+
+**Before generating any file that needs load case combinations, ask the user which method to use** and state the recommendation:
+
+> *"How should the load case combinations be built? (A) Automatic superposition of linear results with MAXIMA according to the design code — recommended for linear analysis; or (B) explicit combination load cases defined in SOFILOAD and analysed in ASE — required for non-linear analysis."*
+
+Once the user has chosen, read **`SUPERPOSITION_STRATEGY.md`** in full (option details, combination types for the design modules, load case numbering, code fragments).
 
 ---
 
@@ -106,7 +135,7 @@ END
 ...
 END
 
-+PROG SOFILOAD urs:3    ← loads (if applicable)
++PROG SOFILOAD urs:3    ← loads (if applicable); explicit combination LCs for option B
 ...
 END
 
@@ -118,18 +147,29 @@ END
 ...
 END
 
-+PROG BEAM urs:6        ← RC beam design checks (if applicable)
++PROG MAXIMA urs:6      ← automatic superposition / envelopes (option A only)
 ...
 END
 
-+PROG COLUMN urs:7      ← RC column design checks (if applicable)
++PROG AQB urs:7         ← cross-section design (if applicable)
 ...
 END
 
-+PROG BEMESS urs:8      ← RC slab design checks (if applicable)
++PROG BEAM urs:8        ← RC beam design checks (if applicable)
+...
+END
+
++PROG COLUMN urs:9      ← RC column design checks (if applicable)
+...
+END
+
++PROG BEMESS urs:10     ← RC slab design checks (if applicable)
 ...
 END
 ```
+
+> DECREATOR must precede MAXIMA only when MAXIMA superposes design element results (`SUPP ... ETYP DSLN`); otherwise MAXIMA may follow ASE directly.
+> A stand-alone section design consists only of `+PROG AQUA urs:1` and one or more `+PROG AQB` blocks with forces defined by `S`.
 
 Only include the modules relevant to the task. The `urs:n` counter must always be sequential with no gaps — renumber accordingly when modules are omitted.
 

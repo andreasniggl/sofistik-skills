@@ -419,8 +419,12 @@ FIX codes are built by combining direction fixity characters. The prefix `P` = t
 
 | FIX code  | Restrained DOF          | Typical use               |
 |-----------|------------------------|---------------------------|
-| `PP`      | All translations       | 3D pinned support         |
-| `FF`      | All 6 DOF              | Fully fixed support       |
+| `PP`      | All translations (= PX+PY+PZ) | 3D pinned support  |
+| `F`       | All DOF (= PP+MM)      | Fully fixed support       |
+| `XP`      | PY + PZ                | Roller free in X          |
+| `YP`      | PX + PZ                | Roller free in Y          |
+| `ZP`      | PX + PY                | Roller free in Z          |
+| `MM`      | MX + MY + MZ + MB      | All rotations             |
 | `PZ`      | Z-translation only     | Vertical roller           |
 | `PX`      | X-translation only     | Horizontal roller (X)     |
 | `PY`      | Y-translation only     | Horizontal roller (Y)     |
