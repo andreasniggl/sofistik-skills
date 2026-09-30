@@ -52,6 +52,10 @@ Claude loads a skill on its own when the task matches its `description`, or you 
 - **Requires the SOFiSTiK Rhino Interface at runtime.** `SOFiSTiK.Analysis.Database.DataAccess` is provided by that plug-in and is not available from a plain Rhino or SSD installation.
 - **Regenerating the type index.** After a SOFiSTiK version upgrade, run `python scripts/build_type_index.py <path-to>/SOFiSTiK.Analysis.Database.xml` to rebuild `references/cdb_type_index.md` from the new assembly documentation.
 
+## Contributing
+
+Want to add a SOFiSTiK module to `sofistik-cadinp` or improve an existing one? See [CONTRIBUTING.md](CONTRIBUTING.md) — it explains which sources to use (the module's `.err` file and the official PDF manual from your SOFiSTiK installation), the module file structure, the quality rules and the pull request checklist.
+
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

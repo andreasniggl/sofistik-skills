@@ -27,11 +27,9 @@ When loaded as a skill, Claude reads the reference files in this folder before w
 sofistik-cadinp/
 ├── README.md                   ← this file
 ├── SKILL.md                    ← entry point — module registry and output rules
-├── MASTER_HANDOVER.md          ← session history, lessons learned, how to extend
 ├── CADINP_LANGUAGE_RULES.md    ← CADINP syntax rules (global)
 ├── SUPERPOSITION_STRATEGY.md   ← MAXIMA vs. SOFILOAD combinations, LC numbering, fragments
 ├── ERR_FILE_FORMAT.md          ← .err source file format reference
-├── journal.txt                 ← development log
 └── modules/
     ├── AQUA.md                 ← materials & sections (814 lines)
     ├── SOFIMSHC.md             ← structural model & meshing (1323 lines)
@@ -54,7 +52,7 @@ sofistik-cadinp/
 
 ## How to extend
 
-See `MASTER_HANDOVER.md` for detailed instructions on adding new modules from SOFiSTiK `.err` source files. Use `AQUA.md` as the structural template for new module files.
+See [`CONTRIBUTING.md`](../CONTRIBUTING.md) in the repository root for a step-by-step guide to adding new modules from the SOFiSTiK `.err` file and the official PDF manual, including the module file structure standard, quality rules and a pull request checklist.
 
 ## Design code support
 
