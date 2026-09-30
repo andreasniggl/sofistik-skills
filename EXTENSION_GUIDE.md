@@ -1,8 +1,25 @@
-# Contributing — Extending the SOFiSTiK Skills
+# Extension Guide — Extending the SOFiSTiK Skills in Your Own Fork
 
-Contributions are welcome. This guide focuses on the most common request: **adding a new SOFiSTiK module to the `sofistik-cadinp` skill** (e.g. DYNA, TENDON, CSM, TALPA, BDK, …). The same principles — source everything from official documentation, never invent syntax, validate in SOFiSTiK — apply to the other skills as well.
+This guide explains how to extend the skills of this repository **in your own copy (fork)** — most commonly by **adding a new SOFiSTiK module to the `sofistik-cadinp` skill** (e.g. DYNA, TENDON, CSM, TALPA, BDK, …). The same principles — source everything from official documentation, never invent syntax, validate in SOFiSTiK — apply to the other skills as well.
 
 You do **not** need access to SOFiSTiK internals. Everything described here works with a regular SOFiSTiK installation and its official PDF manuals.
+
+> This repository is maintained as a reference and does not accept external contributions (pull requests). Fork it and extend your fork as described below; the MIT License allows you to modify and use your copy freely.
+
+---
+
+## 0. Set Up Your Own Copy
+
+1. **Fork** the repository on GitHub (or clone it and push it to your own repository).
+2. Work on a branch of your fork, e.g. `git checkout -b add-dyna-module`.
+3. Optional — to pick up later updates of the original skills, add the original repository as a second remote and merge from it occasionally:
+   ```
+   git remote add upstream https://github.com/andreasniggl/sofistik-skills.git
+   git fetch upstream
+   git merge upstream/main
+   ```
+   Keep your own additions in **new files** (new module files) as far as possible, and limit edits of existing files to the registration entries (§3, Step 6). This keeps merges from upstream simple.
+4. Install your extended skill from your fork (see `README.md` → *How to add a skill to Claude*). If you use it next to the original skill, give your copy a different `name` in the `SKILL.md` frontmatter to avoid conflicts.
 
 ---
 
@@ -21,7 +38,7 @@ sofistik-cadinp/
 
 When Claude generates an input file it reads `SKILL.md`, selects the required modules, reads `CADINP_LANGUAGE_RULES.md` and **only** the relevant `modules/*.md` files, and writes the `.dat` file strictly from the parameter tables in those files.
 
-Consequence for contributors: **a module file is a contract.** Claude will use exactly the commands, parameters, enum values and defaults written there — no more, no less. Any error in a module file becomes an error in every generated input file.
+Consequence for anyone extending the skill: **a module file is a contract.** Claude will use exactly the commands, parameters, enum values and defaults written there — no more, no less. Any error in a module file becomes an error in every generated input file.
 
 ---
 
@@ -34,7 +51,7 @@ Consequence for contributors: **a module file is a contract.** Claude will use e
 | **Example files** | Tutorials and examples shipped with the installation, or your own verified projects | Realistic usage patterns to cross-check the module file |
 | **A SOFiSTiK licence** | — | To **run** the examples you write and prove they work |
 
-> **Copyright:** The `.err` files, PDF manuals and example files are SOFiSTiK property. **Do not commit them to this repository.** Module files must be your own structured summary of the syntax, not copied manual text. Keep them in a local working folder only.
+> **Copyright:** The `.err` files, PDF manuals and example files are SOFiSTiK property. **Do not commit them to your repository** — especially if your fork is public. Module files must be your own structured summary of the syntax, not copied manual text. Keep the sources in a local working folder only.
 
 Read `sofistik-cadinp/ERR_FILE_FORMAT.md` before you start — it explains how to read the `.err` file.
 
@@ -46,7 +63,6 @@ Read `sofistik-cadinp/ERR_FILE_FORMAT.md` before you start — it explains how t
 
 - Is the module needed often enough to justify a file? (Rule of thumb: it appears as its own `+PROG` block in typical workflows.)
 - Where does it sit in the workflow? Decide its position in the canonical module order (see `CADINP_LANGUAGE_RULES.md` §1.2) and which modules must run before it.
-- Open an issue first if you are unsure — it avoids duplicate work.
 
 ### Step 2 — Extract the syntax from the `.err` file
 
@@ -99,9 +115,9 @@ This is the step that makes the skill reliable:
 
 If the module needs a decision from the user (like the superposition strategy for MAXIMA), add it as a **mandatory question** in the *Pre-Flight Protocol* of `SKILL.md` — keep it short there and move details into a separate topic file.
 
-### Step 7 — Open a pull request
+### Step 7 — Final check
 
-See the checklist in §7.
+Go through the checklist in §7 before you use the extended skill productively.
 
 ---
 
@@ -239,23 +255,23 @@ Claude can do most of the drafting if you give it the right sources. A proven wo
 2. Open the repository with Claude (Claude Code or a Claude project with the files attached).
 3. Use a prompt along these lines:
 
-   > Read `CONTRIBUTING.md` and `sofistik-cadinp/ERR_FILE_FORMAT.md`. Then read `<module>.err` and the attached English manual chapter *Description of Input* of `<MODULE>`. Create `sofistik-cadinp/modules/<MODULE>.md` following the module file structure standard, using `modules/AQB.md` as reference. Take syntax, parameter order and enum values only from the `.err` file, meanings and rules only from the manual. Mark parameters that exist only in the `.err` file as "not documented — do not use". Finally check that every parameter used in the examples exists in its parameter table, and register the module in `SKILL.md`, `CADINP_LANGUAGE_RULES.md` and both READMEs.
+   > Read `EXTENSION_GUIDE.md` and `sofistik-cadinp/ERR_FILE_FORMAT.md`. Then read `<module>.err` and the attached English manual chapter *Description of Input* of `<MODULE>`. Create `sofistik-cadinp/modules/<MODULE>.md` following the module file structure standard, using `modules/AQB.md` as reference. Take syntax, parameter order and enum values only from the `.err` file, meanings and rules only from the manual. Mark parameters that exist only in the `.err` file as "not documented — do not use". Finally check that every parameter used in the examples exists in its parameter table, and register the module in `SKILL.md`, `CADINP_LANGUAGE_RULES.md` and both READMEs.
 
 4. Review the result yourself against the manual — Claude can misread tables in PDFs, especially multi-column parameter tables.
 5. Run the examples in SOFiSTiK (Step 5) and feed any errors back to Claude with the error message from the SOFiSTiK output.
 
 ---
 
-## 7. Pull Request Checklist
+## 7. Checklist for Your Extension
 
 - [ ] New module file `sofistik-cadinp/modules/<MODULE>.md` follows the structure standard (§4)
-- [ ] All syntax taken from the `.err` file, all meanings from the official manual; version of SOFiSTiK stated in the PR description
+- [ ] All syntax taken from the `.err` file, all meanings from the official manual; SOFiSTiK version noted (e.g. in the module's *Purpose* section or your commit message)
 - [ ] Every parameter used in the examples exists in the corresponding parameter table
-- [ ] Complete example was run in SOFiSTiK without errors (mention version and design code used)
+- [ ] Complete example was run in SOFiSTiK without errors (note version and design code used)
 - [ ] Module registered in `SKILL.md` (frontmatter, registry, selection guide, output structure)
 - [ ] Module order updated in `CADINP_LANGUAGE_RULES.md`
-- [ ] `sofistik-cadinp/README.md` and root `README.md` updated
+- [ ] `sofistik-cadinp/README.md` and root `README.md` of your fork updated
 - [ ] No `.err` files, PDF manuals or other SOFiSTiK-copyrighted files committed
-- [ ] Existing modules not changed — or changes explained in the PR (corrections to existing files are very welcome, please describe the error found)
+- [ ] Changes to existing module files kept to a minimum and documented (eases merging updates from the original repository)
 
-Contributions are licensed under the repository's [MIT License](LICENSE).
+The original skills are provided under the [MIT License](LICENSE); keep the license file and copyright notice in your fork.

@@ -52,7 +52,7 @@ sofistik-cadinp/
 
 ## How to extend
 
-See [`CONTRIBUTING.md`](../CONTRIBUTING.md) in the repository root for a step-by-step guide to adding new modules from the SOFiSTiK `.err` file and the official PDF manual, including the module file structure standard, quality rules and a pull request checklist.
+See [`EXTENSION_GUIDE.md`](../EXTENSION_GUIDE.md) in the repository root for a step-by-step guide to extending the skill in your own fork: adding new modules from the SOFiSTiK `.err` file and the official PDF manual, the module file structure standard, quality rules and a final checklist.
 
 ## Design code support
 
