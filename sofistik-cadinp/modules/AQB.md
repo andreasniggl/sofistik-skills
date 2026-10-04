@@ -22,7 +22,7 @@ The user requests an RC, prestressed, steel, composite or timber **section desig
 ## Module block template
 
 ```
-+PROG AQB urs:<n>
++PROG AQB
 HEAD <description>
 
 !*!Label Output Control
@@ -987,7 +987,7 @@ CAPA NCS 1 TASK MC STAT ULTI N -500 MY 1.0[-]
 The simplest case: design forces given with `S` (stored as load case 0) and one design task.
 
 ```
-+PROG AQUA urs:1
++PROG AQUA
 HEAD Materials and cross-section
 
 !*!Label Design Code
@@ -1002,7 +1002,7 @@ SREC NO 1 H 600 B 300 MNO 1 MRF 2 SO 50 SU 50 TITL 'Beam 300/600'
 
 END
 
-+PROG AQB urs:2
++PROG AQB
 HEAD ULS design of section 1 for given design forces
 
 !*!Label Output Control
@@ -1024,7 +1024,7 @@ END
 When ULS and SLS forces differ, define an **external section** (`BEAM ... TYPE SECT`) so that the forces can be stored under explicit load cases and the reinforcement is kept for the SLS block. The external system is reactivated in later blocks with `BEAM TYPE SECT`. (AQUA block as in Example 1a.)
 
 ```
-+PROG AQB urs:2
++PROG AQB
 HEAD ULS design of external section
 
 ECHO FULL NO
@@ -1045,7 +1045,7 @@ DESI STAT ULTI
 
 END
 
-+PROG AQB urs:3
++PROG AQB
 HEAD SLS crack width check of external section
 
 ECHO FULL NO
@@ -1072,7 +1072,7 @@ END
 Continuous RC beam analysed with ASE; ULS and SLS envelopes created with MAXIMA (see `MAXIMA.md`, Complete Block Example: `COMB 1 EXTR DESI BASE 2100`, `COMB 3 EXTR FREQ BASE 2300`, `SUPP ... ETYP BEAM TYPE VZ,MY`).
 
 ```
-+PROG AQB urs:6
++PROG AQB
 HEAD ULS bending and shear design of all beams
 
 !*!Label Output Control
@@ -1094,7 +1094,7 @@ DESI STAT ULTI
 
 END
 
-+PROG AQB urs:7
++PROG AQB
 HEAD SLS crack width check of all beams
 
 ECHO FULL NO
@@ -1118,7 +1118,7 @@ END
 ### Example 3 — Steel section check
 
 ```
-+PROG AQB urs:6
++PROG AQB
 HEAD Steel section check EN 1993
 
 ECHO FULL NO
@@ -1137,7 +1137,7 @@ END
 MAXIMA combinations with assigned load duration (`COMB 11 EXTR DESI TYPE PT BASE 3100`, `COMB 12 … TYPE LT BASE 3200`, `COMB 13 … TYPE MT BASE 3300`, see `MAXIMA.md`). AQB selects k_mod from the load duration type of each result load case. The material is defined in AQUA with service class, e.g. `TIMB NO 1 TYPE GL CLAS 24:1` (GL24, service class 1).
 
 ```
-+PROG AQB urs:7
++PROG AQB
 HEAD Timber stress check for all ULS combinations
 
 !*!Label Load Cases: all load duration classes
@@ -1152,7 +1152,7 @@ ECHO STRE YES
 
 END
 
-+PROG AQB urs:8
++PROG AQB
 HEAD Timber stress check for fire (accidental combination)
 
 ECHO STRE YES

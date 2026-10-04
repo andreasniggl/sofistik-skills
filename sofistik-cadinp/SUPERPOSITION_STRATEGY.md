@@ -56,12 +56,12 @@ Both options deliver combination load cases with a combination type that the des
 ## Option A — Fragment (ASE → MAXIMA → AQB)
 
 ```
-+PROG ASE urs:4
++PROG ASE
 HEAD Linear analysis of all primary load cases
 LC ALL
 END
 
-+PROG MAXIMA urs:5
++PROG MAXIMA
 HEAD ULS envelopes
 ECHO FULL NO
 COMB NO 1 EXTR DESI BASE 2100 TITL 'ULS fundamental'
@@ -70,7 +70,7 @@ COMB NO 1 EXTR DESI BASE 2100 TITL 'ULS fundamental'
 SUPP COMB 1 EXTR MAMI ETYP BEAM TYPE N,VZ,MY    $ results 2121/2122, 2125/2126, 2129/2130
 END
 
-+PROG AQB urs:6
++PROG AQB
 HEAD ULS design
 LC TYPE (D)                                     $ or explicitly: LC 2121,2122,2125,2126,2129,2130
 REIN MOD SECT RMOD SAVE LCR 1
@@ -81,19 +81,19 @@ END
 ## Option B — Fragment (SOFILOAD Combination LCs → ASE → AQB)
 
 ```
-+PROG SOFILOAD urs:4
++PROG SOFILOAD
 HEAD Combination load cases
 LC 101 TYPE (D) TITL 'ULS 1.35G + 1.5Q'
   COPY NO 1 FACT 1.35
   COPY NO 2 FACT 1.50
 END
 
-+PROG ASE urs:5
++PROG ASE
 HEAD Analysis of the combination load case (linear or non-linear)
 LC 101
 END
 
-+PROG AQB urs:6
++PROG AQB
 HEAD ULS design
 LC 101
 REIN MOD SECT RMOD SAVE LCR 1

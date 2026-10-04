@@ -8,7 +8,7 @@ Any structural analysis is being performed (required for every analysis).
 
 ## Module block template
 ```
-+PROG AQUA urs:1
++PROG AQUA
 HEAD <description>
 
 !*!Label Design Code
@@ -770,7 +770,7 @@ CABL NO 53 D 55 TYPE 6x36 MNO 13 K 1800   $ K in kN
 ## Complete AQUA Block Example
 
 ```
-+PROG AQUA urs:1
++PROG AQUA
 HEAD Bridge deck — materials and sections
 
 !*!Label Design Code

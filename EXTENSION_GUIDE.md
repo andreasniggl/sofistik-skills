@@ -141,7 +141,7 @@ Every module file follows this structure. **Do not deviate** — Claude relies o
 
 ## Module block template
 ```
-+PROG <NAME> urs:<n>
++PROG <NAME>
 HEAD <description>
 
 !*!Label <Group>
@@ -203,7 +203,7 @@ CMD ...
 ## Complete <NAME> Block Example
 
 ```
-+PROG <NAME> urs:1
++PROG <NAME>
 HEAD ...
 ...
 END

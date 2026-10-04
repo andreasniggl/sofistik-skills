@@ -11,7 +11,7 @@ The user needs to create design elements for RC beam, column, or member design c
 ## Module block template
 
 ```
-+PROG DECREATOR urs:<n>
++PROG DECREATOR
 HEAD <description>
 
 !*!Label Control
@@ -588,7 +588,7 @@ FPLT OPT VAL
 ### Example 1 — Simple beam with support face sections
 
 ```
-+PROG DECREATOR urs:5
++PROG DECREATOR
 HEAD Design elements for floor beams
 
 !*!Label Design Elements
@@ -609,7 +609,7 @@ END
 ### Example 2 — Two-span continuous beam with intermediate support
 
 ```
-+PROG DECREATOR urs:5
++PROG DECREATOR
 HEAD Design element for two-span beam
 
 DSLN NO 10 NCS 3 HDIV 0.5[m] FREF SC TITL 'Continuous beam'
@@ -640,7 +640,7 @@ END
 ### Example 3 — Column design element with quad selection
 
 ```
-+PROG DECREATOR urs:5
++PROG DECREATOR
 HEAD Design element for RC column
 
 DSLN NO 20 NCS 4 TYPE COLU TITL 'Column C1'
@@ -657,7 +657,7 @@ END
 
 ```
 $ --- First run: definition only ---
-+PROG DECREATOR urs:5
++PROG DECREATOR
 HEAD Definition of design elements
 DSLN 1 NCS 1 HDIV 0.5[m]
   DSLC REF MID
@@ -666,7 +666,7 @@ DSLN 2 NCS 1 HDIV 0.5[m]
 END
 
 $ --- Second run: force calculation ---
-+PROG DECREATOR urs:6
++PROG DECREATOR
 HEAD Force calculation for existing design elements
 LC 1,2,3,4,5
 END
@@ -681,7 +681,7 @@ The following DECREATOR block is part of a complete two-span continuous beam wor
 The design element spans both structural lines (SLN 1 and SLN 2). Support face sections (HFAC) are placed at 125 mm from each support axis (half of a 250 mm support width). Shear sections (SHEA) are placed at 800 mm from start/end and at 5200/6800/11200 mm from start — approximately one effective depth (d ≈ 540 mm) from the support faces. Intermediate sections at HDIV 0.25 m provide smooth force plots.
 
 ```
-+PROG DECREATOR urs:5
++PROG DECREATOR
 HEAD Design Elements Definition
 
 DSLN 1 HDIV 0.25 TYPE BEAM

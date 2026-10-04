@@ -63,7 +63,7 @@ Skipping or partially reading any step is not permitted.
 5. **Self-review before submitting.**
    Check every command against its parameter table one final time.
    Verify: correct NORM pairing, supports via SLNS not SARB FIX, units annotated,
-   urs sequence gapless, all +PROG blocks closed with END.
+   no urs in new files / existing urs unchanged, all +PROG blocks closed with END.
 
 ---
 
@@ -127,51 +127,51 @@ A complete SOFiSTiK input file follows this structure:
 ```
 !*** File header / description block ***
 
-+PROG AQUA urs:1        ← always first: materials & sections
++PROG AQUA         ← always first: materials & sections
 ...
 END
 
-+PROG SOFIMSHC urs:2    ← structural geometry
++PROG SOFIMSHC     ← structural geometry
 ...
 END
 
-+PROG SOFILOAD urs:3    ← loads (if applicable); explicit combination LCs for option B
++PROG SOFILOAD     ← loads (if applicable); explicit combination LCs for option B
 ...
 END
 
-+PROG ASE urs:4         ← FEM analysis (if applicable)
++PROG ASE          ← FEM analysis (if applicable)
 ...
 END
 
-+PROG DECREATOR urs:5   ← design elements for beams/columns (if applicable)
++PROG DECREATOR    ← design elements for beams/columns (if applicable)
 ...
 END
 
-+PROG MAXIMA urs:6      ← automatic superposition / envelopes (option A only)
++PROG MAXIMA       ← automatic superposition / envelopes (option A only)
 ...
 END
 
-+PROG AQB urs:7         ← cross-section design (if applicable)
++PROG AQB          ← cross-section design (if applicable)
 ...
 END
 
-+PROG BEAM urs:8        ← RC beam design checks (if applicable)
++PROG BEAM         ← RC beam design checks (if applicable)
 ...
 END
 
-+PROG COLUMN urs:9      ← RC column design checks (if applicable)
++PROG COLUMN       ← RC column design checks (if applicable)
 ...
 END
 
-+PROG BEMESS urs:10     ← RC slab design checks (if applicable)
++PROG BEMESS       ← RC slab design checks (if applicable)
 ...
 END
 ```
 
 > DECREATOR must precede MAXIMA only when MAXIMA superposes design element results (`SUPP ... ETYP DSLN`); otherwise MAXIMA may follow ASE directly.
-> A stand-alone section design consists only of `+PROG AQUA urs:1` and one or more `+PROG AQB` blocks with forces defined by `S`.
+> A stand-alone section design consists only of a `+PROG AQUA` block and one or more `+PROG AQB` blocks with forces defined by `S`.
 
-Only include the modules relevant to the task. The `urs:n` counter must always be sequential with no gaps — renumber accordingly when modules are omitted.
+Only include the modules relevant to the task. Do not write `urs:n` in new files — Teddy assigns the numbers. When editing an existing file, keep every existing `urs:n` unchanged and leave it off new or copied blocks. See `CADINP_LANGUAGE_RULES.md` §1.1.
 
 ---
 

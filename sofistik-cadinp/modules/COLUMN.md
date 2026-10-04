@@ -27,7 +27,7 @@ Before running COLUMN, the following modules must have been executed:
 ## Module block template
 
 ```
-+PROG COLUMN urs:<n>
++PROG COLUMN
 HEAD <description>
 
 !*!Label Control
@@ -517,7 +517,7 @@ CDEL DGRP
 ### Example 1 — Single column with automatic combinations (NCM)
 
 ```
-+PROG COLUMN urs:6
++PROG COLUMN
 HEAD Column design — NCM single column
 
 !*!Label Control
@@ -551,7 +551,7 @@ Each design group must be in its own `+PROG COLUMN` block. A final block prints 
 
 ```
 $ --- Group 1: ground floor columns 300x300 ---
-+PROG COLUMN urs:6
++PROG COLUMN
 HEAD Column design — GF 300x300
 
 CTRL NCM
@@ -570,7 +570,7 @@ COMB LC AUTO FORC ALL
 END
 
 $ --- Group 2: ground floor columns 400x400 ---
-+PROG COLUMN urs:7
++PROG COLUMN
 HEAD Column design — GF 400x400
 
 CTRL NCM
@@ -589,7 +589,7 @@ COMB LC AUTO FORC ALL
 END
 
 $ --- Summary of all design groups ---
-+PROG COLUMN urs:8
++PROG COLUMN
 HEAD Design group summary
 
 ECHO DGRP FULL
@@ -602,7 +602,7 @@ END
 ### Example 3 — Column using design elements (DSLN) with explicit combinations
 
 ```
-+PROG COLUMN urs:7
++PROG COLUMN
 HEAD Column design via design elements
 
 CTRL NCM

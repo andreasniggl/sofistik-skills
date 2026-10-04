@@ -10,14 +10,30 @@ This file defines the syntax rules for the SOFiSTiK CADINP input language. These
 Every analysis task is organised into program (`PROG`) blocks. Each block begins with a `+PROG` declaration and ends with `END`.
 
 ```
-+PROG <MODULE_NAME> urs:<n>
++PROG <MODULE_NAME>
 HEAD <description>
 ...commands...
 END
 ```
 
 - The `+` prefix before `PROG` is recommended and should always be included for clarity.
-- `urs:<n>` (Unique Run Sequence) assigns an execution order number. Must be a positive integer, starting at 1 and incrementing sequentially across the file.
+- `urs:<n>` (e.g. `+PROG AQUA urs:1`) is the block's ID. The SOFiSTiK editor Teddy assigns it automatically before each calculation; the Report Browser and error messages refer to blocks by this number. It does **not** control the execution order — blocks always run in file order.
+  - **New file:** omit `urs` — write `+PROG AQUA`, not `+PROG AQUA urs:1`. Teddy numbers the blocks.
+  - **Editing an existing file:** keep every existing `urs:n` exactly as it is. Never renumber, remove or add numbers on existing blocks — that breaks the link to existing results in the Report Browser.
+  - **Adding or copying a block in an existing file:** write the new block without `urs`. When copying a block, remove its `urs:n` so the copy does not duplicate the number; Teddy assigns the next free one.
+  - Never reorder blocks to match their urs numbers — that changes the execution order.
+
+  ```
+  +PROG SOFILOAD urs:3 $ existing block: number kept
+  HEAD Loads
+  ...
+  END
+
+  +PROG SOFILOAD       $ new block: no urs, Teddy assigns it
+  HEAD Additional snow load
+  ...
+  END
+  ```
 - `HEAD <description>` immediately follows the `+PROG` line and provides a human-readable title for the block. It is mandatory in generated files.
 - `END` terminates the block. It is case-insensitive (`end` is equally valid) but use uppercase `END` for consistency.
 
@@ -28,7 +44,9 @@ Modules must be ordered so that outputs of earlier modules are available as inpu
 AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → MAXIMA → AQB → BEAM → COLUMN → BEMESS
 ```
 
-A stand-alone cross-section design uses only `AQUA → AQB`. The same module may appear in several `+PROG` blocks (e.g. two AQB blocks for ULS design and SLS crack width), each with its own `urs` number.
+The order is defined by the position of the blocks in the file, not by their `urs` numbers.
+
+A stand-alone cross-section design uses only `AQUA → AQB`. The same module may appear in several `+PROG` blocks (e.g. two AQB blocks for ULS design and SLS crack width).
 
 ---
 
@@ -56,7 +74,7 @@ CONC NO 1 TYPE C FCN 25 $ concrete grade C 25
 
 The `$` may also appear within a `+PROG` declaration line:
 ```
-+PROG SOFILOAD urs:3 $ Load Definition
++PROG SOFILOAD $ Load Definition
 ```
 
 ### 2.3 Label Annotations (`!*!Label`)
@@ -176,7 +194,7 @@ CTRL AXIA UNIA
 Provides a human-readable title for the current module block. Place immediately after `+PROG`:
 
 ```
-+PROG SOFILOAD urs:3
++PROG SOFILOAD
 HEAD Actions and Loads
 ```
 
@@ -269,7 +287,7 @@ PARA NOG - DU #D ASU #AS ASL #AS
 `STO#name value` defines a variable like `LET` but additionally **saves it in the database**, so it is available in every later `+PROG` block (and later runs on the same database). Use `STO` for project parameters that are reused across modules, e.g. a creep factor used in MAXIMA or a fire exposure time used in AQUA:
 
 ```
-+PROG AQUA urs:1
++PROG AQUA
 HEAD Materials, sections and project parameters
 NORM DC DIN NDC EN199X-200X
 STO#KDEF 0.6        $ deformation coefficient k_def (timber)
@@ -277,7 +295,7 @@ STO#T_FI 30         $ fire exposure time [min]
 ...
 END
 
-+PROG MAXIMA urs:6
++PROG MAXIMA
 ...
   ACT TYPE G
     LC 0 FACT #KDEF
@@ -304,7 +322,7 @@ END
 ## 12. Common Pitfalls to Avoid
 
 1. **Missing END**: Every `+PROG` block must be closed with `END`.
-2. **Wrong urs sequence**: `urs:n` values must be unique and sequential across the entire file.
+2. **Touching urs numbers**: Omit `urs` in new files. In an existing file, never renumber existing `urs:n`, and never copy a block together with its `urs:n` (duplicate number).
 3. **Referencing undefined entities**: Cross-references (e.g., `MNO`, `MRF`, `NPA`, `NPE`) must point to IDs previously defined in the same or an earlier module.
 4. **Mixing unit systems**: Be explicit with `[unit]` suffixes when mixing mm/m or kN/kN/m to avoid silent scaling errors.
 5. **String quoting**: Use double quotes `"..."` for `TITL` and class values. Single quotes are valid but less common.

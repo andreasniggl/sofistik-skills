@@ -20,7 +20,7 @@ Linear results must be combined **automatically** into envelopes according to a 
 ## Module block template
 
 ```
-+PROG MAXIMA urs:<n>
++PROG MAXIMA
 HEAD <description>
 
 !*!Label Output Control
@@ -104,7 +104,7 @@ CTRL OPT VAL
 **Typical usage:**
 ```
 $ All default combinations and superpositions of the design code (own MAXIMA block)
-+PROG MAXIMA urs:6
++PROG MAXIMA
 HEAD Default action combinations
 CTRL COMB YES          $ generate the default combination rules of the INI-file
 CTRL SUPP YES          $ generate the associated default superpositions
@@ -698,7 +698,7 @@ TRAC LC ETYP ELEM X SELE OPT CSAV
 
 **Typical usage:**
 ```
-+PROG MAXIMA urs:8
++PROG MAXIMA
 HEAD Tracing of the governing ULS combination
 TRAC LC 2129 ETYP BEAM ELEM 1003 X 1[-] OPT 'IF'
 TRAC LC 2155 ETYP NODE ELEM 12 OPT 'IF' CSAV 55
@@ -712,7 +712,7 @@ END
 Continuous RC beam (SOFIMSHC structural line, beam elements), actions G and Q defined in SOFILOAD, all primary load cases analysed linearly in ASE. The envelopes are used by AQB (see `AQB.md`, Example 2).
 
 ```
-+PROG MAXIMA urs:5
++PROG MAXIMA
 HEAD Superposition ULS and SLS envelopes
 
 !*!Label Output Control
@@ -756,7 +756,7 @@ END
 Two-span RC girder (SOFIMSHC `GDIV 10000`, beams 10001–10020 in GRP 1); actions `G`, `Q_B`, `S` defined in SOFILOAD.
 
 ```
-+PROG MAXIMA urs:6
++PROG MAXIMA
 HEAD Explicit action combinations and superpositions
 
 !*!Label SLS quasi-permanent (results 31xx)

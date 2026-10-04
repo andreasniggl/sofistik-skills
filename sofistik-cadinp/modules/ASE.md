@@ -11,7 +11,7 @@ The user needs to run a structural analysis (static, nonlinear, eigenvalue, buck
 ## Module block template
 
 ```
-+PROG ASE urs:<n>
++PROG ASE
 HEAD <description>
 
 !*!Label Analysis
@@ -443,7 +443,7 @@ LC ALL
 
 > **Nonlinear analysis:** Each nonlinear load case must be in its own `+PROG ASE ... END` block. Do not place multiple `LC` records in a single nonlinear ASE block — use separate blocks instead:
 > ```
-> +PROG ASE urs:10
+> +PROG ASE
 > SYST PROB NONL NMAT YES ITER 300 TOL -0.5
 > CREP 1
 > REIQ LCR 10 FACT 1.0 LCRS 91
@@ -452,7 +452,7 @@ LC ALL
 >   LCC 211
 > END
 >
-> +PROG ASE urs:11
+> +PROG ASE
 > SYST PROB NONL NMAT YES ITER 300 TOL -0.5
 > CREP 1
 > REIQ LCR 10 FACT 1.0 LCRS 91
@@ -826,7 +826,7 @@ REIQ LCR 1 FACT 1.0 LCRS 99 CHKR 400
 ## Complete ASE Block Example
 
 ```
-+PROG ASE urs:1
++PROG ASE
 HEAD 'Linear static analysis — dead load and imposed load'
 
 !*!Label Output Control
@@ -849,7 +849,7 @@ END
 ```
 
 ```
-+PROG ASE urs:2
++PROG ASE
 HEAD 'Second-order analysis with primary load case'
 
 !*!Label Output
@@ -872,7 +872,7 @@ END
 ```
 
 ```
-+PROG ASE urs:3
++PROG ASE
 HEAD 'Eigenvalue analysis — 10 dynamic modes'
 
 ECHO EIGE FULL

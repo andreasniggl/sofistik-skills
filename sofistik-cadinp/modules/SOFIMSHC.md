@@ -8,7 +8,7 @@ Any structural model is being created (required for every analysis).
 
 ## Module block template
 ```
-+PROG SOFIMSHC urs:<n>
++PROG SOFIMSHC
 HEAD <description>
 
 SYST 3D GDIR NEGZ GDIV -1000   $ system type and gravity direction

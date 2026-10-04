@@ -25,7 +25,7 @@ Before running BEMESS, the following modules must have been executed:
 ## Module block template
 
 ```
-+PROG BEMESS urs:<n>
++PROG BEMESS
 HEAD <description>
 
 !*!Label Design Parameters
@@ -34,7 +34,7 @@ PARA NOG - DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
 
 END
 
-+PROG BEMESS urs:<n+1>
++PROG BEMESS
 HEAD <description>
 
 !*!Label ULS Design
@@ -610,7 +610,7 @@ REIN TITL "ULS envelope all floors"
 ### Example 1 — Design parameter definition (separate run)
 
 ```
-+PROG BEMESS urs:7
++PROG BEMESS
 HEAD Design parameters for flat slab
 
 !*!Label Default cover and diameters
@@ -627,7 +627,7 @@ END
 ### Example 2 — ULS design with punching
 
 ```
-+PROG BEMESS urs:8
++PROG BEMESS
 HEAD ULS design — flat slab
 
 CTRL LCR 1
@@ -643,7 +643,7 @@ END
 ### Example 3 — SLS crack width check (envelope onto ULS results)
 
 ```
-+PROG BEMESS urs:9
++PROG BEMESS
 HEAD SLS crack check — flat slab
 
 CTRL TYPE SLS
@@ -661,7 +661,7 @@ END
 
 ```
 $ --- Step 1: Design parameters ---
-+PROG BEMESS urs:7
++PROG BEMESS
 HEAD Design parameters
 
 GEOM HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
@@ -670,7 +670,7 @@ PARA NOG - DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
 END
 
 $ --- Step 2: ULS bending + shear + punching ---
-+PROG BEMESS urs:8
++PROG BEMESS
 HEAD ULS design
 
 CTRL LCR 1
@@ -682,7 +682,7 @@ PUNC YES
 END
 
 $ --- Step 3: SLS crack check (envelope) ---
-+PROG BEMESS urs:9
++PROG BEMESS
 HEAD SLS crack check
 
 CTRL TYPE SLS
@@ -706,7 +706,7 @@ The following blocks are part of a complete single-span slab workflow: 6.0 × 2.
 A separate BEMESS run stores the cover, bar diameters, reinforcement directions, and a uniform base reinforcement (d10/150 both layers, both directions) for all groups.
 
 ```
-+PROG BEMESS urs:7
++PROG BEMESS
 HEAD Define Reinforcement Layout
 
 !*!Label Section Geometry
@@ -726,7 +726,7 @@ END
 The ULS design run uses the pre-combined load case 101 (1.35G + 1.5Q). Punching is set to check-only mode.
 
 ```
-+PROG BEMESS urs:8
++PROG BEMESS
 HEAD ULS Reinforcement Design
 
 CTRL LCR 10                           $ store results in design case 10
@@ -744,7 +744,7 @@ END
 After BEMESS has stored the required reinforcement, ASE can perform a full nonlinear layered-shell analysis to compute deflections including cracking, tension stiffening, and creep+shrinkage effects. The `REIQ` command imports the reinforcement from the BEMESS design case into the nonlinear analysis.
 
 ```
-+PROG ASE urs:10
++PROG ASE
 HEAD Deflection Analysis — Nonlinear Method
 
 SYST PROB NONL NMAT YES ITER 300 TOL -0.5

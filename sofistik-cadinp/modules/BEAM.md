@@ -24,7 +24,7 @@ Before running BEAM, the following modules must have been executed:
 ## Module block template
 
 ```
-+PROG BEAM urs:<n>
++PROG BEAM
 HEAD <description>
 
 !*!Label Output Control
@@ -594,7 +594,7 @@ BDEL DGRP
 ### Example 1 — Simple two-span beam with explicit combinations
 
 ```
-+PROG BEAM urs:6
++PROG BEAM
 HEAD RC beam design — two-span continuous beam
 
 !*!Label Output Control
@@ -648,7 +648,7 @@ END
 ### Example 2 — Beam with MAXIMA superposition
 
 ```
-+PROG BEAM urs:7
++PROG BEAM
 HEAD RC beam design using MAXIMA results
 
 ECHO FULL YES
@@ -666,7 +666,7 @@ END
 ### Example 3 — Beam with moment redistribution and reinforcement layout
 
 ```
-+PROG BEAM urs:6
++PROG BEAM
 HEAD RC beam design with redistribution
 
 ECHO FULL FULL
@@ -714,7 +714,7 @@ END
 The following BEAM block completes the design for the two-span continuous beam (see DECREATOR worked example). The beam (2 x 6 m, C30/37, B500B, 300 x 600 mm) is designed for ULS bending and shear, and checked for SLS deflection and crack width. Three ULS combinations cover the load patterns (both spans, left only, right only). Three SLS quasi-permanent combinations are used for deflection and cracking. A longitudinal reinforcement layout is provided for the SLS verification.
 
 ```
-+PROG BEAM urs:6
++PROG BEAM
 HEAD Beam Design
 
 ECHO SUM YES                                 $ show design summary table

@@ -8,7 +8,7 @@ The user needs to define action types (ACT), open load cases (LC), apply geometr
 
 ## Module block template
 ```
-+PROG SOFILOAD urs:5
++PROG SOFILOAD
 
 HEAD Loads - ULS and SLS
 
@@ -31,7 +31,7 @@ LC 2 TYPE G_2 TITL 'G2 - Superimposed dead load'
 END
 ```
 
-> `+PROG SOFILOAD urs:<n>` — the `urs` run number must be unique in the `.dat` file and greater than any SOFIMSHC urs number.
+> The SOFILOAD block must be placed after the SOFIMSHC block it refers to (execution follows file order). For `urs` numbering see `CADINP_LANGUAGE_RULES.md` §1.1.
 > All loads defined below an `LC` record belong to that load case until the next `LC` record or `END`.
 > Actions (ACT) must be defined before they are referenced by LC TYPE.
 > Self-weight is activated by setting DLX/DLY/DLZ on the LC record.
@@ -1224,7 +1224,7 @@ END
 Full example: a six-storey reinforced concrete office building. Defines actions using standard code designations, dead and live load cases with geometry-referenced AREA loads, and COPY for ULS/SLS combinations.
 
 ```
-+PROG SOFILOAD urs:5
++PROG SOFILOAD
 
 HEAD Six-storey office building - Load definition
 
