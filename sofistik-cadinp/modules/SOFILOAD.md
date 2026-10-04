@@ -459,6 +459,11 @@ POIN loads are not singular loads with a stress singularity at the tip, but ener
 
 If the reference is NODE with an explicit number, the default coordinates are those of that node, and eccentricities generate moments at the node. For REF SLN/BGRP, eccentricities are copied to beam loading or transformed to moments. For REF SAR/QGRP, the load is always converted to up to four nodal loads without eccentricities.
 
+> **Choosing REF for POIN loads — mandatory rule:**
+> - **Load position given by coordinates** → use `REF AUTO` (default). The program finds the matching points, lines or areas itself.
+> - **Load applied at a node** → use `REF NODE NO <node-number>`. Coordinates may be omitted; they default to the node position.
+> - **All other REF values** (`SLN`, `SAR`, `LAR`, `GFA`, `BGRP`, `QGRP`, `VGRP`, `MOVE`) only when the user explicitly requests them. Every one of them needs an explicit reference/group number `NO`.
+
 **Syntax:**
 ```
 POIN REF NO TITL PROJ WIDE NREF TYPE P X Y Z
@@ -482,13 +487,13 @@ POIN REF NO TITL PROJ WIDE NREF TYPE P X Y Z
 
 | Value  | Meaning |
 |--------|---------|
-| `AUTO` | Automatic — program searches points, lines, then areas |
+| `AUTO` | Automatic — program searches points, lines, then areas. **Preferred** when the load position is given by coordinates |
 | `MOVE` | Automatic moving load |
 | `LAR`  | Load distribution area |
 | `SLN`  | Structural line |
 | `SAR`  | Structural area |
 | `GFA`  | Surface number of BRICs |
-| `NODE` | Generated node |
+| `NODE` | Generated node — **preferred** when referencing a node by `NO` |
 | `BGRP` | Group of beam / cable / truss elements |
 | `QGRP` | Group of QUAD elements |
 | `VGRP` | Group of BRIC elements |
@@ -565,8 +570,8 @@ Support displacements in local directions are not possible.
 $ 100 kN downward at X=5, Y=3 — automatic projection to nearest node
 POIN REF AUTO TYPE PZZ P -100.0 X 5.0 Y 3.0 Z 0.0
 
-$ Point load on specific structural line
-POIN REF SLN NO 5 TYPE PZZ P -50.0 X 3.0 Y 0.0 Z 0.0
+$ Point load at node 5 (coordinates default to the node position)
+POIN REF NODE NO 5 TYPE PZZ P -50.0
 
 $ Prescribed nodal settlement
 POIN REF NODE NO 101 TYPE WZZ P -5.0  $ 5 mm settlement at node 101
@@ -578,7 +583,12 @@ POIN REF NODE NO 101 TYPE WZZ P -5.0  $ 5 mm settlement at node 101
 
 LINE and CURV describe a polygon or a smooth curved line load applied independent from the element mesh. The load can follow a sequence of elements (LINE without geometry), a mesh-independent polygon (LINE with geometry), or a mesh-independent curve (CURV with geometry). Distribution of load values may be explicit or obtained from a spline along the defined load direction.
 
-If the reference SLN, EDG, or BGRP is used with an explicit number NO, coordinates may be omitted — the load is then uniform along the whole line. If a SLN has been subdivided only partially with beam elements, the load is applied only on those generated beams. To load the total line, either define coordinates explicitly or use REF EDG to generate nodal loads.
+If the reference SLN, EDG, or BGRP is used with an explicit number NO, coordinates may be omitted — the load is then uniform along the whole line. If a SLN has been subdivided only partially with beam elements, the load is applied only on those generated beams. To load the total line, define coordinates explicitly.
+
+> **Choosing REF for LINE loads — mandatory rule:**
+> - **Load geometry given by coordinates** → use `REF AUTO` (default). The program finds the matching structural lines, edges or areas itself.
+> - **Load applied to a structural line defined in SOFIMSHC** → use `REF SLN NO <sln-number>`. Coordinates may be omitted for a uniform load along the whole line.
+> - **All other REF values** (`EDG`, `LAR`, `SAR`, `GFA`, `BGRP`, `QGRP`, `VGRP`, `MOVE`) only when the user explicitly requests them. Every one of them needs an explicit reference/group number `NO`; `REF EDG` without `NO` is an error.
 
 It is possible to define up to 63 load points. As only 6 are allowed per record, additional points must be specified in continuation records with TYPE CONT. When using CONT, none of the records must contain generation or list expressions.
 
@@ -608,13 +618,13 @@ LINE REF NO TITL PROJ WIDE NREF TYPE
 
 | Value  | Meaning |
 |--------|---------|
-| `AUTO` | Automatic |
+| `AUTO` | Automatic — **preferred** when the load geometry is given by coordinates |
 | `MOVE` | Automatic moving load |
 | `LAR`  | Load distribution area |
-| `SLN`  | Structural line |
+| `SLN`  | Structural line — **preferred** when referencing a SOFIMSHC structural line by `NO` |
 | `SAR`  | Structural area |
 | `GFA`  | Surface number of BRICs |
-| `EDG`  | Nodal sequence (polygonal geometry) |
+| `EDG`  | Nodal sequence (polygonal geometry) — only on explicit request; requires `NO` |
 | `BGRP` | Group of beam / cable / truss elements |
 | `QGRP` | Group of QUAD elements |
 | `VGRP` | Group of BRIC elements |
@@ -683,6 +693,11 @@ AREA describes general polygon loading areas applied independent from the elemen
 
 If a constant load on all elements of an area is required, define only the reference number NO and the load value P1 with REF SAR/LAR/QGRP/TRB — all coordinates may be omitted. Kinks in load values must be modelled via separate load areas.
 
+> **Choosing REF for AREA loads — mandatory rule:**
+> - **Load polygon given by coordinates** → use `REF AUTO` (default). The program finds the matching load distribution areas, structural areas or elements itself.
+> - **Load applied to a structural area defined in SOFIMSHC** → use `REF SAR NO <sar-number>`. Coordinates may be omitted for a uniform load over the whole area.
+> - **All other REF values** (`LAR`, `TRB`, `GFA`, `BGRP`, `QGRP`, `VGRP`, `MOVE`) only when the user explicitly requests them. Every one of them needs an explicit reference/group number `NO`.
+
 It is possible to define up to 63 corner points. As only 6 are allowed per record, additional points are specified in continuation records with TYPE CONT. When using CONT, none of the records must contain generation or list expressions.
 
 For load areas from the 2nd point onward, entering one of `DXY`, `DYZ`, or `DZX` for the X-value interprets the remaining two coordinates as increments from the first point. Defining only two points with this shorthand creates a rectangle in the corresponding coordinate plane.
@@ -715,11 +730,11 @@ AREA REF NO TITL PROJ WIDE NREF TYPE
 
 | Value  | Meaning |
 |--------|---------|
-| `AUTO` | Automatic |
+| `AUTO` | Automatic — **preferred** when the load polygon is given by coordinates |
 | `MOVE` | Automatic moving load |
 | `LAR`  | Load distribution area (stiffness-based) |
 | `TRB`  | Tributary area (geometrical) |
-| `SAR`  | Structural area |
+| `SAR`  | Structural area — **preferred** when referencing a SOFIMSHC structural area by `NO` |
 | `GFA`  | Surface number of BRICs |
 | `BGRP` | Group of beam elements |
 | `QGRP` | Group of QUAD elements |
