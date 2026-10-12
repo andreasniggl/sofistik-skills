@@ -30,7 +30,7 @@ HEAD <description>
 
 !*!Label Design Parameters
 GEOM HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
-PARA NOG - DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
+PARA DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
 
 END
 
@@ -315,7 +315,7 @@ PARA NOG NOEL DU DU2 DU3 DL DL2 DL3
 ```
 $ Default for all groups: d10, crack width 0.3mm
 GEOM HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
-PARA NOG - DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
+PARA DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
 
 $ Group 3: different cover, d20, crack width 0.2mm
 GEOM HA 50[mm] DHA 10[mm] HB 50[mm] DHB 10[mm]
@@ -615,7 +615,7 @@ HEAD Design parameters for flat slab
 
 !*!Label Default cover and diameters
 GEOM HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
-PARA NOG - DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
+PARA DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
 
 !*!Label Group 3: thicker cover (exposure XC4)
 GEOM HA 50[mm] DHA 10[mm] HB 50[mm] DHB 10[mm]
@@ -665,7 +665,7 @@ $ --- Step 1: Design parameters ---
 HEAD Design parameters
 
 GEOM HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
-PARA NOG - DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
+PARA DU 10[mm] WKU 0.3[mm] DL 10[mm] WKL 0.3[mm]
 
 END
 
@@ -710,13 +710,13 @@ A separate BEMESS run stores the cover, bar diameters, reinforcement directions,
 HEAD Define Reinforcement Layout
 
 !*!Label Section Geometry
-GEOM - HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
+GEOM HA 35[mm] DHA 10[mm] HB 35[mm] DHB 10[mm]
 
 !*!Label Reinforcement Direction
 DIRE UPP 0 LOW 0                     $ main direction 0° for both layers
 
 !*!Label Base Reinforcement (d10/150 = 5.24 cm2/m)
-PARA NOG - DU 10[mm] ASU 5.24[cm2/m] 5.24[cm2/m] ASL 5.24[cm2/m] 5.24[cm2/m]
+PARA DU 10[mm] ASU 5.24[cm2/m] 5.24[cm2/m] ASL 5.24[cm2/m] 5.24[cm2/m]
 
 END
 ```
@@ -753,7 +753,7 @@ CREP 1                                 $ activate creep analysis
 REIQ LCR 10 FACT 1.0 LCRS 91          $ import reinforcement from BEMESS design case 10
 
 $ Creep and shrinkage parameters
-GRP - PHI 2.0 EPS -0.0004             $ phi=2.0, eps_cs=0.4 permille
+GRP PHI 2.0 EPS -0.0004             $ phi=2.0, eps_cs=0.4 permille
 
 LC 311 FACD 1.0 TITL "NONL: 1.0G + 0.3Q"
   LCC 211                             $ copy quasi-permanent combination

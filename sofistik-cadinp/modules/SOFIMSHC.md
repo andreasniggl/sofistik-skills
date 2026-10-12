@@ -506,7 +506,7 @@ SPTS NO REF 'TYPE' CP CQ CM DX DY DZ GRP MNO AR
 
 **Multiple springs per point — CADINP value list shorthand:**
 ```
-SPTS TYPE CX,CY,CZ  CP 1000[kN/m3], 2000[kN/m3], 3000[kN/m3]
+SPTS TYPE CX,CY,CZ CP 1000,2000,3000[kN/m3]
 $ creates three orthogonal springs with individual stiffness values in one record
 ```
 

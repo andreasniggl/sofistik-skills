@@ -363,8 +363,8 @@ COMB NO 12 EXTR DESI TYPE LT BASE 3200
   ACT TYPE Q_E
     LC -1
 
-$ Factor from a CADINP variable (e.g. creep deformation k_def)
-STO#KDEF 0.6
+$ Factor from a CADINP variable (e.g. creep deformation k_def), defined as
+$ project parameter in the leading TEMPLATE block: STO#KDEF 0.6
 COMB NO 22 EXTR PERM BASE 4200
   ACT TYPE G
     LC 0 FACT #KDEF

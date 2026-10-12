@@ -600,13 +600,13 @@ GRP NO VAL FACS PLC GAM H K SIGN SIGH FACL FACD FACP FACT
 **Typical usage:**
 ```
 $ All groups active, dead load factor 1.0
-GRP - FULL FACD 1.0
+GRP VAL FULL FACD 1.0
 
 $ Deactivate group 3
 GRP 3 OFF
 
 $ Creep and shrinkage
-GRP - PHI 2.0 EPS -0.0005
+GRP PHI 2.0 EPS -0.0005
 
 $ Construction stage with stiffness reduction
 GRP 5 FACS 0.5 CS 10
@@ -782,11 +782,11 @@ CREP NCRE RO T BEAM RCRE
 ```
 $ Simplified slab deflection (one-step, cracked condition)
 CREP 1
-GRP - PHI 2.0 EPS -0.0004          $ phi=2.0, eps_cs=0.4 permille
+GRP PHI 2.0 EPS -0.0004          $ phi=2.0, eps_cs=0.4 permille
 
 $ Multi-step creep (5 steps, Trost relaxation)
 CREP 5 RO 0.8
-GRP - PHI 2.5 EPS -0.0005
+GRP PHI 2.5 EPS -0.0005
 ```
 
 ---
@@ -839,7 +839,7 @@ ECHO DISP YES
 SYST PROB LINE
 
 !*!Label Groups
-GRP - FULL
+GRP VAL FULL
 
 !*!Label Load Cases
 LC 1 FACD 1.0 TITL 'Dead load'
@@ -862,7 +862,7 @@ ECHO DISP YES
 SYST PROB TH2 PLC 1
 
 !*!Label Groups
-GRP - FULL
+GRP VAL FULL
 
 !*!Label Load Cases
 LC 10 FACD 1.0

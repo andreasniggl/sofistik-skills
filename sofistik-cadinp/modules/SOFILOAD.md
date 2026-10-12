@@ -675,10 +675,10 @@ LINE REF AUTO TYPE PZZ $$
 $ Linearly varying line load (8 → 12 kN/m)
 LINE REF AUTO TYPE PZZ $$
      P1 -8.0  X1 0.0  Y1 0.0  Z1 3.0 $$
-     P2 -12.0 X2 0.0  Y2 10.0 Z2 3.0 $$
+     P2 -12.0 X2 0.0  Y2 10.0 Z2 3.0
 
 $ Uniform load on entire structural line 5 (no coordinates needed)
-LINE REF SLN NO 5 TYPE PZZ P1 -5.0 $$
+LINE REF SLN NO 5 TYPE PZZ P1 -5.0
 
 $ More than 6 points using continuation records
 LINE REF SLN NO 1 TYPE PX P1 1.0 X1 0. Y1 0. Z1 0.  P2 2.0 X2 1. Y2 0. Z2 0.  $ points 1–2 (abbreviated)
