@@ -41,10 +41,12 @@ END
 Modules must be ordered so that outputs of earlier modules are available as inputs to later ones. The canonical order is:
 
 ```
-AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → MAXIMA → AQB → BEAM → COLUMN → BEMESS
+(TEMPLATE) → AQUA → SOFIMSHC → SOFILOAD → ASE → DECREATOR → MAXIMA → AQB → BEAM → COLUMN → BEMESS
 ```
 
 The order is defined by the position of the blocks in the file, not by their `urs` numbers.
+
+`+PROG TEMPLATE` is a placeholder module without analysis. In parametric input files it comes first and defines all project parameters with `STO#` (see §9 and `CADINP_VARIABLES_AND_CONTROL.md` §3).
 
 A stand-alone cross-section design uses only `AQUA → AQB`. The same module may appear in several `+PROG` blocks (e.g. two AQB blocks for ULS design and SLS crack width).
 
@@ -76,6 +78,11 @@ The `$` may also appear within a `+PROG` declaration line:
 ```
 +PROG SOFILOAD $ Load Definition
 ```
+
+- `//` is a third comment marker with the same effect as `!` and `$`.
+- Separate every comment marker from the data and from the comment text by a blank.
+- On a `+PROG` line only `$` is allowed as comment. A `+SYS` line must not contain any comment.
+- A `$` inside text data must be quoted (`'A$B'`), otherwise it starts a comment.
 
 ### 2.3 Label Annotations (`!*!Label`)
 A special comment form used to create named, collapsible groups in the SOFiSTiK Teddy editor. Always place immediately before the group of commands it describes.
@@ -137,6 +144,46 @@ LC NO 2 TYPE Q TITL "Live load"
 ```
 
 `NO` may be omitted when it is the first positional argument and the context makes it unambiguous, but explicit `NO` is preferred in generated files.
+
+### 3.5 Literals
+- Literal values (keywords such as `TYPE C`) are significant only in their first four characters; they are converted to uppercase unless quoted.
+- Quote a literal if it contains blanks, `,`, `;` or `$`, or if it could be confused with a number, a record name or a parameter name (`'1.45'`, `'A B'`).
+- Line length: at most 255 characters per line.
+
+### 3.6 Record Syntax Features
+These features are part of the CADINP language and valid in every module. Prefer explicit, readable records in generated files; use the features below where they make the input clearly shorter without hiding its meaning.
+
+| Feature | Syntax | Meaning |
+|---------|--------|---------|
+| Named items | `SPT NO 1 X 0 Z 3` | Value by parameter name, independent of position — always preferred |
+| Default value | `-` | Use the default for this position. **Avoid** — positions may change between releases; omit the item or name the others instead. |
+| Repeat value | `=` | Same value as in the preceding record (same record name only) |
+| Repeat all | `==` | All remaining values as in the preceding record |
+| Increment | `++` / `--` | Value of the preceding record ±1 (numbers, literals, lists, generations) |
+| Several records per line | `;` | `LC 101 ; COPY 1,2,3 DESI` (not for text records such as `HEAD`) |
+| List of values | `1,2,7,9` | No blanks inside; cannot span lines; all lists of a record must have the same length |
+| Primary generation | `(start end incr)` | Generates one record per value; once per record |
+| Secondary generation | `(start incr)` | Increments another item in step with the primary generation |
+
+`=`, `==`, `++`, `--` and `-` must be surrounded by blanks.
+
+Generation example (`NODE` of SOFIMSHA, from the CADINP manual):
+```
+NODE (1 5 1) 0 (0.5 -0.1)
+```
+generates `NODE 1 0 0.5`, `NODE 2 0 0.4`, … `NODE 5 0 0.1`. More than 9999 generated records or an end value that is not reached exactly is an error. For anything beyond a simple series use `LOOP` (see `CADINP_VARIABLES_AND_CONTROL.md` §9).
+
+**Tables.** A record consisting only of parameter names defines a table header; the following lines contain values without record name. A header item may redefine the default with `NAME=value` (no blanks) and a default unit with `NAME=[unit]`:
+```
+LC  NO  TYPE  TITL
+    1   G     'Self-weight'
+    2   Q     'Live load'
+
+SPT NO  X=[m]  Y=0[m]  Z=0[m]
+    1   0.0
+    2   5.0
+```
+The table is valid until a new record name appears or the same record name is repeated.
 
 ---
 
@@ -233,66 +280,62 @@ CADINP keywords and parameter names are **case-insensitive**. However, **always 
 
 - Each command is typically on a single line.
 - Use `$$` as continuation only when a record exceeds 100 characters.
+- `$$` must be preceded by a blank. Text after `$$` is a comment.
+- An expression or a list of values cannot be split across lines with `$$`.
 - Sub-records are placed on new lines with indentation — this is the primary mechanism for structuring complex definitions.
 
 ---
 
-## 9. Variables and Expressions (LET)
+## 9. Variables and Expressions (LET# / STO#) — Summary
 
-CADINP supports user-defined variables via the `LET` command. Variables can hold numeric values or expressions and be referenced in any subsequent parameter value.
+CADINP has numeric and text variables, arithmetic expressions, loops and conditions. This section lists the rules that apply to every file. **For anything beyond simple variables — and always for parametric input — read `CADINP_VARIABLES_AND_CONTROL.md`.**
 
-### 9.1 Variable Definition
+### 9.1 Scope: LET# vs. STO#
+
+| Command | Scope |
+|---------|-------|
+| `LET#name value` | Local to the **current `+PROG` block** — lost at `END` |
+| `STO#name value` | Like `LET#`, and additionally **saved in the database** — available in all later `+PROG` blocks |
+
+> A `LET#` variable is **not** available in a later `+PROG` block. Every variable used in more than one block must be defined with `STO#`.
+
+### 9.2 Syntax
 
 ```
 LET#name value
-LET#name expression
+STO#name expression
 ```
 
-- Variable names are prefixed with `#` and may contain letters, digits, and underscores (e.g. `#D`, `#AS`, `#PI`, `#H_SLAB`).
-- The value can be a numeric literal, another variable, or an arithmetic expression.
-- Variables are case-insensitive.
-
-### 9.2 Arithmetic Expressions
-
-CADINP supports standard arithmetic operators in expressions:
-
-| Operator | Meaning |
-|----------|---------|
-| `+` `-` `*` `/` | Addition, subtraction, multiplication, division |
-| `^` | Exponentiation |
-| `( )` | Grouping |
-
-Built-in functions: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SQRT`, `ABS`, `EXP`, `LOG`, `LOG10`, `MIN`, `MAX`, `INT`, `MOD`.
-
-### 9.3 Using Variables
-
-Once defined, a variable is referenced by its `#name` in any parameter position:
+- No blank between `LET#`/`STO#` and the name; one blank between name and value.
+- Names: up to 16 alphanumeric characters (underscores allowed), first character a letter, case-insensitive (e.g. `#D`, `#AS`, `#H_SLAB`). Do not use function names or reserved names (`#PI`, `#VERSION`, names of the form `XXX_…` created by programs).
+- Every assignment needs its own `LET#`/`STO#` prefix.
+- Reference a variable with `#name` wherever a number is expected.
+- **No blanks inside an expression:** `#A*#B+2`, not `#A * #B + 2`.
+- Operators: `+ - * /`, `**` or `^`, comparisons `== <> >= <= > <` (result 1 or 0), `&` `|`.
+- Functions (exact names): `SIN COS TAN ASIN ACOS ATN SQR ABS EXP LOG` (natural) `LGT` (base 10) `DIV MOD MIN MAX IIF ARC RANDOM`. There is **no** `SQRT`, `ATAN`, `LOG10` or `INT`.
+- Dimensional values in variables: give the unit in the definition (`STO#H 600[mm]`), then reference the variable without a unit (`H #H`).
 
 ```
 LET#D  10                        $ bar diameter [mm]
 LET#A  0.15                      $ bar spacing [m]
-LET#PI 3.14159265
-LET#AS 0.0025*#D*#D*#PI/#A      $ reinforcement area per metre
-
-GEOM - HA 35 DHA #D HB 35 DHB #D
-PARA NOG - DU #D ASU #AS ASL #AS
+LET#AS 0.0025*#D*#D*#PI/#A       $ reinforcement area per metre (#PI is preset)
 ```
 
-> Variables defined in one `+PROG` block are available in all subsequent blocks of the same `.dat` file.
-> `LET` commands can appear anywhere — before or within a `+PROG` block.
-> Use variables for parametric studies and to avoid repeating derived values.
+### 9.3 Parametric Input — TEMPLATE Block
 
-### 9.4 Stored Variables (STO)
-
-`STO#name value` defines a variable like `LET` but additionally **saves it in the database**, so it is available in every later `+PROG` block (and later runs on the same database). Use `STO` for project parameters that are reused across modules, e.g. a creep factor used in MAXIMA or a fire exposure time used in AQUA:
+When the user requests a parametric input file, define all project parameters with `STO#` in a `+PROG TEMPLATE` block at the very beginning of the file, before `+PROG AQUA`:
 
 ```
++PROG TEMPLATE
+HEAD Project parameters
+STO#L     8.0[m]          $ span length
+STO#H     600[mm]         $ beam height
+STO#KDEF  0.6             $ deformation coefficient k_def (timber)
+END
+
 +PROG AQUA
-HEAD Materials, sections and project parameters
-NORM DC DIN NDC EN199X-200X
-STO#KDEF 0.6        $ deformation coefficient k_def (timber)
-STO#T_FI 30         $ fire exposure time [min]
 ...
+SREC NO 1 H #H B 300[mm] MNO 1 MRF 2
 END
 
 +PROG MAXIMA
@@ -302,6 +345,8 @@ END
 ...
 END
 ```
+
+See `CADINP_VARIABLES_AND_CONTROL.md` §3 for the complete pattern and a worked example.
 
 ---
 
@@ -329,3 +374,5 @@ END
 6. **Sub-records without parent**: Sub-record keywords (e.g., `SARB`, `SLNN`, `SLNP`, `SPTS`, `DSLC`) are invalid without a preceding parent command.
 7. **Unlisted parameters**: Never use a parameter on a command unless it appears in that command's parameter table. Parameters valid for one command are not transferable to another, even within the same module.
 8. **Duplicate entity numbers**: Never define the same `NO` for the same command type more than once. Combine all parameters — geometry, supports, section — into the single defining record. Use a negative `NO` only when intentionally modifying an existing entity.
+9. **LET# variables across blocks**: A `LET#` variable is lost at the `END` of its block. Use `STO#` for every variable needed in a later block; in parametric files define all parameters in a leading `+PROG TEMPLATE` block.
+10. **Blanks inside expressions**: `#A+#B` is one value, `#A + #B` is three. Never put a blank inside an expression or after `LET#`/`STO#`.

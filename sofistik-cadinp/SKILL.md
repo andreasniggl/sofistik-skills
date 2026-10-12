@@ -6,7 +6,8 @@ description: >
   modelling and meshing (SOFIMSHC), load definition (SOFILOAD), linear,
   nonlinear, eigenvalue and dynamic analysis (ASE), superposition and envelopes
   of load cases (MAXIMA), RC/steel/timber cross-section design (AQB), and member
-  and slab design (DECREATOR, BEAM, COLUMN, BEMESS). Use this skill whenever the
+  and slab design (DECREATOR, BEAM, COLUMN, BEMESS), and parametric input with
+  LET#/STO# variables, loops and conditions. Use this skill whenever the
   user asks to create, edit, or review SOFiSTiK input, or mentions .dat files,
   CADINP, or SOFiSTiK FEA.
 ---
@@ -45,6 +46,8 @@ Skipping or partially reading any step is not permitted.
 
 2. **Read every required module file in full** (as determined by the Module Selection Guide),
    and `SUPERPOSITION_STRATEGY.md` whenever load case combinations are involved.
+   Read `CADINP_VARIABLES_AND_CONTROL.md` in full whenever the input is parametric or uses
+   variables beyond simple `LET#` values, expressions, `LOOP`, `IF`, or database access (`@KEY`).
    For each module, confirm before moving on:
    - All command syntaxes and parameter tables for commands you will use
    - All sub-record rules (e.g. SLNS for line supports, SARB boundary-only role)
@@ -63,7 +66,8 @@ Skipping or partially reading any step is not permitted.
 5. **Self-review before submitting.**
    Check every command against its parameter table one final time.
    Verify: correct NORM pairing, supports via SLNS not SARB FIX, units annotated,
-   no urs in new files / existing urs unchanged, all +PROG blocks closed with END.
+   no urs in new files / existing urs unchanged, all +PROG blocks closed with END,
+   every variable used in a later block defined with `STO#` (not `LET#`), no blanks inside expressions.
 
 ---
 
@@ -73,6 +77,7 @@ Each module is a `+PROG` block in the generated file. Load only the sub-files ne
 
 | Module Name   | Sub-file                        | Purpose                                             | Required for                                      |
 |---------------|---------------------------------|-----------------------------------------------------|---------------------------------------------------|
+| TEMPLATE      | `CADINP_VARIABLES_AND_CONTROL.md` §3 | Placeholder module (no analysis): project parameters as `STO#` variables, printed in the report | Parametric input files                            |
 | AQUA          | `modules/AQUA.md`               | Materials, cross-sections, section properties       | Any structural analysis                           |
 | SOFIMSHC      | `modules/SOFIMSHC.md`           | Structural model geometry, meshing                  | Any structural analysis                           |
 | SOFILOAD      | `modules/SOFILOAD.md`           | Actions, load cases, load application               | Any analysis with external loads                  |
@@ -93,6 +98,7 @@ Each module is a `+PROG` block in the generated file. Load only the sub-files ne
 Use the following decision logic to select the required modules:
 
 ```
+Parametric input   → + TEMPLATE as first block (all parameters as STO#)
 Any model          → AQUA + SOFIMSHC
 Has external loads → + SOFILOAD
 Static analysis    → + ASE
@@ -127,7 +133,11 @@ A complete SOFiSTiK input file follows this structure:
 ```
 !*** File header / description block ***
 
-+PROG AQUA         ← always first: materials & sections
++PROG TEMPLATE     ← parametric input only: all project parameters as STO# variables
+...
+END
+
++PROG AQUA         ← first analysis block: materials & sections
 ...
 END
 
@@ -191,4 +201,5 @@ Only include the modules relevant to the task. Do not write `urs:n` in new files
 - In `SYST 3D` beam-only models, restrain out-of-plane translation (PY) and torsional rotation (MX) at all supports to prevent rigid-body instability. Use `FIX PPMX` for pinned supports, `FIX PZPYMX` for roller supports.
 - Reinforcing and prestressing steel `CLAS` values do not include the TYPE prefix — use numeric grade only (e.g. `CLAS 500A`, `CLAS 500B` for rebar; `CLAS 1860S7`, `CLAS 1050` for prestressing). The letter belongs in `TYPE B`/`TYPE Y`/`TYPE YC`, not in `CLAS`.
 - Truss members should be modelled as standard beam elements with moment releases at both ends (`SLN ... FIXA MYMZ FIXE MYMZ`), not as truss elements (`STYP T`). This preserves full beam output (shear, moments from self-weight) and avoids numerical issues with pure truss formulations. Use `STYP T` only if the user explicitly requests true truss elements.
+- When the user asks for a parametric file, define every parameter with `STO#` and an explicit unit in a leading `+PROG TEMPLATE` block and reference it with `#name` in the following blocks; use `LOOP`/`IF` for repeated or conditional records (see `CADINP_VARIABLES_AND_CONTROL.md`).
 - Use the `$$` line continuation marker only when a single record exceeds 100 characters. Keep shorter commands on one line. Do not use `$$` between a parent command and its sub-records (e.g. `SLN` → `SLNB`, `SAR` → `SARB`/`SARR`).

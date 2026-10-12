@@ -28,7 +28,8 @@ You do **not** need access to SOFiSTiK internals. Everything described here work
 ```
 sofistik-cadinp/
 ├── SKILL.md                    ← entry point: module registry, selection guide, mandatory questions, output rules
-├── CADINP_LANGUAGE_RULES.md    ← global CADINP syntax rules (units, comments, continuation, variables)
+├── CADINP_LANGUAGE_RULES.md    ← global CADINP syntax rules (units, comments, record syntax, variable scope)
+├── CADINP_VARIABLES_AND_CONTROL.md ← LET#/STO# variables, expressions, LOOP/IF, CDB access, TEMPLATE parameters
 ├── SUPERPOSITION_STRATEGY.md   ← how load case combinations are built (MAXIMA vs. SOFILOAD)
 ├── ERR_FILE_FORMAT.md          ← how to read SOFiSTiK *.err files (the syntax source)
 └── modules/

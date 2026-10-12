@@ -28,6 +28,7 @@ sofistik-cadinp/
 ├── README.md                   ← this file
 ├── SKILL.md                    ← entry point — module registry and output rules
 ├── CADINP_LANGUAGE_RULES.md    ← CADINP syntax rules (global)
+├── CADINP_VARIABLES_AND_CONTROL.md ← LET#/STO# variables, expressions, LOOP/IF, TEMPLATE parameters
 ├── SUPERPOSITION_STRATEGY.md   ← MAXIMA vs. SOFILOAD combinations, LC numbering, fragments
 ├── ERR_FILE_FORMAT.md          ← .err source file format reference
 └── modules/
