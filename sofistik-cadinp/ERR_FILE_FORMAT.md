@@ -68,7 +68,7 @@ The first four characters form the **line type code**:
 | col 0 | `-` | Always a dash — identifies a definition line |
 | col 1 | `1` `2` `*` | Language: `1`=German, `2`=English, `*`=language-independent |
 | col 2 | `0`–`9` `A`–`Z` | Line type (see table below) |
-| col 3 | space, `0`–`9`, `A`–`Z` | Parameter position index (for enum/unit lines) or space |
+| col 3 | space, `=`, `0`–`9`, `A`–`Z`, `a`–`z` | Parameter position index (enum lines), `=` for an alias record (type `0`), otherwise space |
 
 ### Line type codes (col 2)
 
@@ -77,7 +77,7 @@ The first four characters form the **line type code**:
 | `0`  | Main parameter line for a command or its continuation |
 | `1`  | Enum value list for the parameter at the position given by col 3 |
 | `2`  | Unit/default values line — column-aligned with the immediately preceding parameter line |
-| `3`  | Error reference (cross-reference to another command's messages) |
+| `3`  | Message numbers for obsolete input (e.g. `-*3  916`) |
 | `7`  | Human-readable syntax summary line (printed in error output) |
 
 ### Parameter position index (col 3 on enum lines)
@@ -94,6 +94,7 @@ On enum lines (type `1`), col 3 encodes the **1-indexed position** of the parame
 | `B`   | 11th parameter |
 | …     | … |
 | `Z`   | 35th parameter |
+| `a`…`z` | 36th… parameter (allowed by the CADINP reader, rarely used) |
 
 **Example:** For command SAR with parameters `'NO "FIX XXXX XXXX XXXX 'GRP MNO MRF "REF NX NY NZ NRA "QREF ...`, the line `-21E ABOV CENT BELO` assigns enums `ABOV`, `CENT`, `BELO` to the parameter at position `E` (14th) = `QREF`.
 
@@ -129,20 +130,22 @@ Language-independent lines (`-*x`) apply to both versions simultaneously.
 | 18–22   | 3rd parameter: `XXXX ` (5-char block) |
 | …       | subsequent 5-char blocks |
 
-Each **parameter token** occupies exactly 5 characters (4 content + 1 space padding). The leading character is a **type prefix**:
+Each **parameter token** occupies exactly 5 characters: one **type marker** character followed by the 4-character name. The marker sits in the column directly before the name (for the first parameter: column 8). The meanings are defined in the CADINP reader (`fea/lib/cadinp/src/cadind.f90`, `CADIND_X`):
 
-| Prefix | Type | Input accepted |
-|--------|------|----------------|
-| `'`    | Integer | Whole number |
-| `"`    | Keyword / enum | Literal string from enum list |
-| `` ` ``| String / title | Quoted or unquoted text |
-| `=`    | Reference | Number referencing another element |
-| `!`    | Variable name | Identifier string |
-| `+`    | Additive flag | Value added to running total |
-| *(none)*| Float | Real number, optionally with unit suffix |
-| `XXXX` | Placeholder | Reserved position — value accepted but currently unused |
+| Marker | Input accepted |
+|--------|----------------|
+| *(blank)* | Number, optionally with unit (if a unit id is given on the `-*2` line) |
+| `'`    | Number **or** literal (e.g. a number or `GRP`, `ALL`, `FULL`) |
+| `"`    | Literal only |
+| `!`    | Literal only, always converted to upper case |
+| `=`    | Number or formula |
+| `` ` ``| Long text (UTF-8 string, e.g. file names, titles) |
+| `XXXX` | Not a marker but an unnamed slot: counts for the parameter position, no input parameter |
 
-Note: a parameter may accept values of multiple types. For example, `'NO` (integer) may also accept enum values assigned to its position via enum lines.
+Notes:
+- `'` does **not** mean integer — whether a value is an integer is not encoded in the .err file. Example: `'NO` accepts a number or one of the literals assigned to its position.
+- There is no `+` marker. Characters such as `+`, `-`, `*`, `@` or `<` at the start of a name (e.g. `@DEL`, `+SAR`) are part of the parameter or literal name.
+- Lowercase letters in a name mark an obsolete parameter that is still accepted.
 
 #### Continuation lines
 
@@ -156,7 +159,7 @@ When a command has more parameters than fit on one line, they continue on subseq
 
 A `-*0` line is a **continuation** of the current command's parameters (not a new command) when the command name slot is blank — even if the first parameter token looks like a command name (e.g. `NRA`).
 
-A `-*0` line defines a **sub-command** only when the first token starts with the parent command's prefix (e.g. `SARB` under `SAR`, `GAXH` under `GAX`).
+A `-*0` line with a name in columns 4–7 starts a **new record** that has the same name in both languages (e.g. `SARB` after `SAR`, `GAXH` after `GAX`). Whether a record belongs to another one logically is not encoded in the .err file.
 
 ---
 
@@ -176,12 +179,12 @@ In this example, the `-*2` on line 3 annotates the `-*0` on line 2. The `0005` i
 
 The `-*2` on line 5 annotates the `-*0` on line 4. The `1001` values align with `H1`, `H2`, `H3`, assigning them the unit code for metres.
 
-Unit codes are 4-digit identifiers defined in `docs/Implicit_Units.txt`. Common codes:
+Unit codes are 4-digit ids of the implicit unit system (sometimes written without leading zeros, e.g. `   5`). The id defines a semantic category; the **input default unit** depends on the active unit set (`NORM UNIT`). A value without explicit unit is read in that default unit — e.g. a thickness (`1010`) is read in **mm** with unit set 5 (Eurocode), even though the database stores it in m. Give an explicit unit (`0.25[m]`) when in doubt.
 
-| Code | CDBASE unit | Description |
-|------|-------------|-------------|
+| Code | Input default (unit set 5) | Description |
+|------|----------------------------|-------------|
 | `1001` | m | Geometric length |
-| `1010` | m | Thickness |
+| `1010` | mm | Thickness |
 | `1011` | mm | Cross-section dimension |
 | `1012` | m2 | Cross-section area |
 | `1014` | m4 | 4th order section area |
@@ -204,7 +207,7 @@ Unit codes are 4-digit identifiers defined in `docs/Implicit_Units.txt`. Common 
 | `0005` | ° | Degrees (legacy code) |
 | `9999` | - | Maximum allowed value / dimensionless |
 
-See `docs/Implicit_Units.txt` for the complete mapping.
+The defaults in this table are taken from how the SOFiSTiK manuals document the ids (`\sofUnit[<id>]{<unit>}`); the manual of the module is the reference for an id not listed here.
 
 ---
 
@@ -225,7 +228,18 @@ In this example (from SAR):
 - `-11E` → same position, German enums `OBEN`, `MITT`, `UNTE`
 - `-*1R` → position `R` (27th param = `MCTL`) receives enums `AUTO`, `REGM`, `SNGQ`, `OFF`
 
-Multiple lines with the same subtype extend the enum list. Language-specific lines (`-11X` / `-21X`) provide German / English synonyms for the same enum slots. Language-independent lines (`-*1X`) apply to both.
+Multiple lines with the same subtype extend the enum list. Language-specific lines (`-11X` / `-21X`) provide German / English synonyms for the same enum slots. Language-independent lines (`-*1X`) apply to both. The slot number of an enum value (counting `....` and `XXXX` slots) is the value the program receives.
+
+**Reference lines** reuse the list of another parameter:
+
+```
+-111 ->  TYP @DEL
+-*1n ->  KW   REC
+```
+
+`-*1n ->  KW` copies the enum list of parameter `KW` of the same record, `-*1n ->  KW   REC` the list of `KW` in record `REC`.
+
+**Default enums:** a `'` parameter without own enum list accepts `AUS/OFF`, `NEIN/NO`, `JA/YES`, `VOLL/FULL` and `EXTR`.
 
 ---
 
@@ -406,4 +420,5 @@ The German and English blocks are separated by `000 ***...***` comment lines:
 - Message number `000` with any severity code is always treated as a comment and never emitted.
 - A `-*0` continuation line is distinguished from a new command by context: if the command name slot (cols 4–7) is blank and a current command exists, it is a continuation.
 - Enum values can be assigned to any parameter type, not just keyword (`"`) parameters. The position index determines the target parameter.
-- Unit codes reference the implicit unit system defined in `docs/Implicit_Units.txt`.
+- Unit codes reference the implicit unit system; the input default depends on the unit set (see the unit table above).
+- Authoritative sources for this format: `fea/lib/cadinp/src/cadind.f90` (`CADIND_X` header) and `fea/lib/cadinp_parser/src/err_file.cpp`.
